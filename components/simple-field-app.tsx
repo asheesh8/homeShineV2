@@ -1,6 +1,8 @@
 "use client";
 
 import { startTransition, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { Sparkles } from "lucide-react";
 
 import {
   type AiSummary,
@@ -1098,11 +1100,33 @@ export default function SimpleFieldApp() {
       <main style={{ minHeight: "100vh", background: "var(--bg)", paddingBottom: 44 }}>
         <div style={{ background: "linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%)", color: "white", padding: "18px 20px", boxShadow: "0 10px 25px rgba(27, 45, 69, 0.16)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", maxWidth: 980, margin: "0 auto" }}>
-            <div>
-              <div className="serif" style={{ fontSize: 30, fontWeight: 700 }}>
-                Home<span style={{ color: "#7dd3fc" }}>SHINE</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+              <div>
+                <div className="serif" style={{ fontSize: 30, fontWeight: 700 }}>
+                  Home<span style={{ color: "#7dd3fc" }}>SHINE</span>
+                </div>
+                <div style={{ fontSize: 14, color: "#cbd5e1", marginTop: 4 }}>Field assessment</div>
               </div>
-              <div style={{ fontSize: 14, color: "#cbd5e1", marginTop: 4 }}>Field assessment</div>
+              <Link
+                href="/promos"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  border: "1px solid rgba(255,255,255,.28)",
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,.08)",
+                  color: "white",
+                  padding: "8px 14px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  textDecoration: "none",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <Sparkles size={14} />
+                Promotions
+              </Link>
             </div>
             {session ? (
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

@@ -2,7 +2,7 @@
 
 import { startTransition, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { Award, BarChart2, Lightbulb, Sparkles } from "lucide-react";
 
 import {
   type AiSummary,
@@ -1127,6 +1127,72 @@ export default function SimpleFieldApp() {
                 <Sparkles size={14} />
                 Promotions
               </Link>
+              {session?.id === "steven" && (
+                <Link
+                  href="/certificate"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    border: "1px solid rgba(255,255,255,.28)",
+                    borderRadius: 14,
+                    background: "rgba(255,255,255,.08)",
+                    color: "white",
+                    padding: "8px 14px",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <Award size={14} />
+                  Certificate
+                </Link>
+              )}
+              {session?.id === "steven" && (
+                <Link
+                  href="/market"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    border: "1px solid rgba(255,255,255,.28)",
+                    borderRadius: 14,
+                    background: "rgba(255,255,255,.08)",
+                    color: "white",
+                    padding: "8px 14px",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <BarChart2 size={14} />
+                  Market
+                </Link>
+              )}
+              {session?.id === "beth" && (
+                <Link
+                  href="/reasoning"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    border: "1px solid rgba(255,255,255,.28)",
+                    borderRadius: 14,
+                    background: "rgba(255,255,255,.08)",
+                    color: "white",
+                    padding: "8px 14px",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <Lightbulb size={14} />
+                  Our Plans
+                </Link>
+              )}
             </div>
             {session ? (
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

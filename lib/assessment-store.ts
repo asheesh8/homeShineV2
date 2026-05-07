@@ -1,4 +1,4 @@
-import type { Assessment, Owner, SectionValue } from "@/lib/simple-field";
+import type { Assessment, CheckoutData, Owner, SectionValue } from "@/lib/simple-field";
 
 export type AssessmentRow = {
   id: string;
@@ -16,6 +16,10 @@ export type AssessmentRow = {
   updated_at: string;
 };
 
+type PersistedSections = Record<string, SectionValue | null> & {
+  __checkout?: CheckoutData | null;
+};
+
 function normalizeOwner(row: AssessmentRow): Owner {
   return {
     name: row.owner_name ?? "",
@@ -28,6 +32,9 @@ function normalizeOwner(row: AssessmentRow): Owner {
 }
 
 export function mapRowToAssessment(row: AssessmentRow): Assessment {
+  const persistedSections = (row.sections ?? {}) as PersistedSections;
+  const { __checkout: checkout = null, ...sections } = persistedSections;
+
   return {
     id: row.id,
     owner: normalizeOwner(row),
@@ -36,11 +43,17 @@ export function mapRowToAssessment(row: AssessmentRow): Assessment {
     updatedAt: row.updated_at,
     writeup: row.writeup ?? "",
     aiSummary: row.ai_summary ?? null,
-    sections: row.sections ?? {},
+    checkout,
+    sections,
   };
 }
 
 export function mapAssessmentToRow(assessment: Assessment): AssessmentRow {
+  const sections = {
+    ...assessment.sections,
+    __checkout: assessment.checkout ?? null,
+  } as PersistedSections;
+
   return {
     id: assessment.id,
     owner_name: assessment.owner.name,
@@ -52,7 +65,7 @@ export function mapAssessmentToRow(assessment: Assessment): AssessmentRow {
     status: assessment.status,
     writeup: assessment.writeup ?? "",
     ai_summary: assessment.aiSummary ?? null,
-    sections: assessment.sections,
+    sections,
     created_at: assessment.createdAt,
     updated_at: assessment.updatedAt,
   };

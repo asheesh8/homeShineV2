@@ -59,7 +59,7 @@ export function PromosCarousel() {
         See What You Win
       </div>
       <div style={{ fontSize: 15, color: "var(--muted)", marginBottom: 16 }}>
-        Steven's work — up close.
+        Steven&apos;s work - up close.
       </div>
 
       {/* Slide frame */}

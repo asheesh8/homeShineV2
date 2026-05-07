@@ -20,6 +20,17 @@ export type AiSummary = {
   generatedAt: string;
 };
 
+export type CheckoutPlanId = "shine-now" | "protection" | "shine-ready" | "shine-renew";
+
+export type CheckoutData = {
+  planId: CheckoutPlanId;
+  planName: string;
+  planPrice: number;
+  paymentOption: "full" | "deposit-monthly";
+  createdAt: string;
+  contractNote: string;
+};
+
 export type Assessment = {
   id: string;
   owner: Owner;
@@ -28,6 +39,7 @@ export type Assessment = {
   updatedAt: string;
   writeup: string;
   aiSummary: AiSummary | null;
+  checkout?: CheckoutData | null;
   sections: Record<string, SectionValue | null>;
 };
 
@@ -357,6 +369,7 @@ export function makeAssessment(): Assessment {
     updatedAt: new Date().toISOString(),
     writeup: "",
     aiSummary: null,
+    checkout: null,
     sections,
   };
 }
@@ -377,6 +390,7 @@ export function sampleAssessments(): Assessment[] {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       writeup: "Roof and gutters look in good shape overall. Minor moss noted at rear roof corner.",
+      checkout: null,
       aiSummary: {
         summary:
           "The home looks like a solid candidate for routine exterior maintenance, with the roof and gutters needing light attention first because of the moss noted near the rear roof corner.",

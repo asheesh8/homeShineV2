@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Award } from "lucide-react";
+import { HomeShineLogo } from "@/components/homeshine-logo";
 
 const FONTS_CSS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Cinzel:wght@400;600;700&family=Dancing+Script:wght@400;600;700&display=swap');`;
 
@@ -134,55 +135,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
         >
           {/* Logo mark — left */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 100 }}>
-            <div
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: "50%",
-                background: "#0d1a2a",
-                border: "1px solid rgba(255,255,255,0.1)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <svg width="30" height="26" viewBox="0 0 30 26" fill="none">
-                <polygon
-                  points="15,2 28,13 2,13"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  strokeLinejoin="round"
-                />
-                <rect x="7" y="13" width="16" height="9" fill="none" stroke="white" strokeWidth="1.5" />
-                <rect x="12" y="16" width="6" height="6" fill="white" />
-              </svg>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: "0.16em",
-                  color: "white",
-                  lineHeight: 1,
-                }}
-              >
-                HOME
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Dancing Script', cursive",
-                  fontSize: 19,
-                  color: "#7dd3fc",
-                  lineHeight: 1.1,
-                }}
-              >
-                Shine
-              </div>
-            </div>
+            <HomeShineLogo size={54} />
           </div>
 
           {/* Center title */}
@@ -730,22 +683,25 @@ export default function CertificatePage() {
               margin: "0 auto",
             }}
           >
-            <div>
-              <div className="serif" style={{ fontSize: 30, fontWeight: 700 }}>
-                Home<span style={{ color: "#7dd3fc" }}>SHINE</span>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: 14,
-                  color: "#cbd5e1",
-                  marginTop: 4,
-                }}
-              >
-                <Award size={13} style={{ flexShrink: 0 }} />
-                Certificate Generator
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <HomeShineLogo size={58} />
+              <div>
+                <div className="serif" style={{ fontSize: 24, fontWeight: 700 }}>
+                  Home<span style={{ color: "#7dd3fc" }}>SHINE</span>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontSize: 14,
+                    color: "#cbd5e1",
+                    marginTop: 4,
+                  }}
+                >
+                  <Award size={13} style={{ flexShrink: 0 }} />
+                  Certificate Generator
+                </div>
               </div>
             </div>
             <Link href="/" style={navPillStyle}>

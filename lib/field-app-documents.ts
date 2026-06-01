@@ -776,32 +776,245 @@ export function diplomaDocument(assessment: Assessment) {
   return shell(`${assessment.owner.name} — HomeSHINE Certificate`, body, styles);
 }
 
-/* ─── open / download helpers ──────────────────────────────────────────── */
+/* ─── FIELD REPORT (notes + AI summary) ───────────────────────────────── */
 
-export function openNotesDocument(assessment: Assessment) {
-  openPrintable(`${assessment.owner.name} Notes`, notesDocument(assessment));
+export function fieldReportDocument(assessment: Assessment) {
+  const styles = `
+    .page { max-width: 820px; margin: 32px auto; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(24,38,56,.12); }
+    .doc-header { background: linear-gradient(135deg, #182638 0%, #1d4030 100%); padding: 28px 32px; display: flex; align-items: center; gap: 18px; }
+    .doc-header-text { color: #fff; }
+    .doc-header-text .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 3px; }
+    .doc-header-text h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 700; line-height: 1.1; color: #fff; }
+    .doc-header-text .sub { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 5px; }
+    .doc-body { padding: 28px 32px; }
+    .section { margin-bottom: 24px; }
+    .section-label { font-size: 10.5px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .info-card { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; background: #fff; }
+    .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 3px; }
+    .value { font-size: 14px; font-weight: 600; color: var(--ink); }
+    .writeup-box { font-size: 14px; line-height: 1.7; color: var(--ink-2); background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+    .ai-box { font-size: 14px; line-height: 1.7; color: var(--ink-2); background: #f0faf4; border: 1px solid #c6e6d3; border-radius: 10px; padding: 14px 16px; }
+    .step-list { margin-top: 10px; padding-left: 18px; display: grid; gap: 5px; }
+    .step-list li { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+    .ref-list { margin-top: 8px; padding-left: 18px; display: grid; gap: 4px; }
+    .ref-list li { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+    .divider { height: 1px; background: var(--line); margin: 4px 0 24px; }
+    .section-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: #fff; margin-bottom: 10px; }
+    .section-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+    .field-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+    .field-row:last-child { border-bottom: none; }
+    .field-key { font-size: 12.5px; color: var(--muted); }
+    .field-val { font-size: 13px; font-weight: 600; color: var(--ink); text-align: right; max-width: 55%; }
+    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .doc-header, .doc-body { padding: 18px; } }
+    @media print { body { background: #fff; } .page { box-shadow: none; border: none; border-radius: 0; margin: 0; } }
+  `;
+
+  const sectionCards = sectionDefinitions
+    .filter((sec) => assessment.sections[sec.id])
+    .map((sec) => {
+      const values = assessment.sections[sec.id] ?? {};
+      const rows = sec.fields
+        .map((field) => {
+          const value = renderValue(field, values[field.key]);
+          if (!value) return "";
+          return `<div class="field-row"><span class="field-key">${escapeHtml(prettyLabel(field))}</span><span class="field-val">${value}</span></div>`;
+        })
+        .join("");
+      return rows
+        ? `<div class="section-card"><div class="section-header">${escapeHtml(sec.emoji)} ${escapeHtml(sec.label)}</div>${rows}</div>`
+        : "";
+    })
+    .join("");
+
+  const aiBlock = assessment.aiSummary ? (() => {
+    const steps = assessment.aiSummary!.nextSteps.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
+    const refs = assessment.aiSummary!.sources.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
+    return `
+      <div class="section">
+        <div class="section-label">AI Summary</div>
+        <div class="ai-box">
+          <p style="margin:0 0 4px;">${escapeHtml(assessment.aiSummary!.summary)}</p>
+          ${steps ? `<ul class="step-list">${steps}</ul>` : ""}
+          ${refs ? `<ul class="ref-list">${refs}</ul>` : ""}
+        </div>
+      </div>`;
+  })() : "";
+
+  const body = `
+    <div class="page">
+      <div class="doc-header">
+        ${homeshineBadgeSvg(48, true)}
+        <div class="doc-header-text">
+          <div class="eyebrow">HomeSHINE · Field Report</div>
+          <h1>${escapeHtml(assessment.owner.name)}</h1>
+          <div class="sub">${escapeHtml(formatOwnerAddress(assessment.owner))} · ${new Date(assessment.updatedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+        </div>
+      </div>
+      <div class="doc-body">
+        <div class="section">${ownerGrid(assessment.owner)}</div>
+        <div class="divider"></div>
+        ${assessment.writeup ? `<div class="section"><div class="section-label">Field Writeup</div><p class="writeup-box">${escapeHtml(assessment.writeup)}</p></div>` : ""}
+        ${aiBlock}
+        ${sectionCards ? `<div class="section"><div class="section-label">Section Details</div>${sectionCards}</div>` : ""}
+      </div>
+    </div>`;
+
+  return shell(`${assessment.owner.name} — Field Report`, body, styles);
 }
 
-export function downloadNotesDocument(assessment: Assessment) {
-  downloadPrintable(`${assessment.owner.name} Notes`, notesDocument(assessment));
-}
+/* ─── CLIENT PACKET (receipt + contract combined) ──────────────────────── */
 
-export function openReceiptDocument(assessment: Assessment) {
-  openPrintable(`${assessment.owner.name} Receipt`, receiptDocument(assessment));
-}
+export function clientPacketDocument(assessment: Assessment) {
+  const plan = getCheckoutPlan(assessment.checkout?.planId);
+  const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  const invoiceNum = `HS-${assessment.id.slice(-6).toUpperCase()}`;
+  const paymentLabel = assessment.checkout?.paymentOption === "deposit-monthly" ? "Deposit + Monthly" : "Standard Payment";
 
-export function downloadReceiptDocument(assessment: Assessment) {
-  downloadPrintable(`${assessment.owner.name} Receipt`, receiptDocument(assessment));
-}
+  const styles = `
+    .page { max-width: 720px; margin: 32px auto; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(24,38,56,.12); }
+    .doc-header { background: linear-gradient(135deg, #182638 0%, #1d4030 100%); padding: 28px 32px; display: flex; align-items: center; gap: 18px; border-bottom: 3px solid var(--green); }
+    .doc-header-text { color: #fff; flex: 1; }
+    .doc-header-text .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 3px; }
+    .doc-header-text h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 700; color: #fff; }
+    .doc-header-meta { text-align: right; color: rgba(255,255,255,.6); font-size: 12px; line-height: 1.8; }
+    .doc-header-meta strong { display: block; color: #fff; font-size: 13px; }
+    .doc-body { padding: 28px 32px; }
+    .section { margin-bottom: 24px; }
+    .section-label { font-size: 10.5px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .info-card { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; background: #fff; }
+    .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 3px; }
+    .value { font-size: 14px; font-weight: 600; color: var(--ink); }
+    .plan-row { background: var(--green-soft); border: 1px solid #c6e6d3; border-radius: 12px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px; }
+    .plan-row-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--green); font-weight: 700; margin-bottom: 2px; }
+    .plan-row-name { font-size: 17px; font-weight: 700; color: var(--ink); }
+    .plan-row-price { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 30px; font-weight: 700; color: var(--green-2); white-space: nowrap; }
+    .line-table { width: 100%; border-collapse: collapse; }
+    .line-table th { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 0 8px; text-align: left; border-bottom: 1px solid var(--line); }
+    .line-table th:last-child { text-align: right; }
+    .line-table td { padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); vertical-align: top; }
+    .line-table td:last-child { text-align: right; font-weight: 700; color: var(--ink); }
+    .line-table tr.total td { border-top: 2px solid var(--ink); border-bottom: none; padding-top: 13px; font-weight: 700; color: var(--ink); font-size: 15px; }
+    .line-name { font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+    .line-desc { font-size: 12px; color: var(--muted); }
+    .payment-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 11px 15px; }
+    .payment-row .pay-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    .payment-row .pay-val { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .includes-list { display: grid; gap: 7px; margin-top: 4px; }
+    .includes-item { display: flex; align-items: flex-start; gap: 9px; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+    .includes-dot { width: 17px; height: 17px; border-radius: 50%; background: var(--green-soft); border: 1px solid #c6e6d3; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; font-size: 9px; color: var(--green); font-weight: 800; }
+    .legal-text { font-size: 13px; line-height: 1.7; color: var(--ink-2); background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+    .note-text { font-size: 13.5px; line-height: 1.65; color: var(--ink-2); background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 13px 15px; }
+    .divider { height: 1px; background: var(--line); margin: 4px 0 24px; }
+    .sig-block { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .sig-box { border: 1px solid var(--line); border-radius: 12px; padding: 18px 16px; background: #fff; }
+    .sig-name { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+    .sig-role { font-size: 12px; color: var(--muted); margin-bottom: 22px; }
+    .sig-line { height: 1px; background: var(--ink-2); margin-bottom: 5px; }
+    .sig-date-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+    .footer { text-align: center; padding: 18px 32px; background: #f8fafc; border-top: 1px solid var(--line); }
+    .footer p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .footer strong { color: var(--ink); }
+    @media (max-width: 600px) { .info-grid, .sig-block { grid-template-columns: 1fr; } .doc-header { flex-direction: column; gap: 10px; } .doc-header-meta { text-align: left; } .doc-body { padding: 18px; } .plan-row { flex-direction: column; align-items: flex-start; } }
+    @media print { body { background: #fff; } .page { box-shadow: none; border: none; border-radius: 0; margin: 0; } }
+  `;
 
-export function openCheckoutDocument(assessment: Assessment) {
-  openPrintable(`${assessment.owner.name} Checkout`, checkoutDocument(assessment));
-}
+  const includesList = plan?.includes.map((item) =>
+    `<div class="includes-item"><div class="includes-dot">✓</div><span>${escapeHtml(item)}</span></div>`
+  ).join("") ?? "";
 
-export function openContractDocument(assessment: Assessment) {
-  openPrintable(`${assessment.owner.name} Contract`, contractDocument(assessment));
-}
+  const body = `
+    <div class="page">
+      <div class="doc-header">
+        ${homeshineBadgeSvg(48, true)}
+        <div class="doc-header-text">
+          <div class="eyebrow">HomeSHINE · Client Packet</div>
+          <h1>${escapeHtml(assessment.owner.name)}</h1>
+        </div>
+        <div class="doc-header-meta">
+          <strong>${escapeHtml(invoiceNum)}</strong>
+          ${escapeHtml(today)}
+        </div>
+      </div>
+      <div class="doc-body">
 
-export function openDiplomaDocument(assessment: Assessment) {
-  openPrintable(`${assessment.owner.name} Diploma`, diplomaDocument(assessment));
+        <div class="section">${ownerGrid(assessment.owner)}</div>
+        <div class="divider"></div>
+
+        ${plan ? `
+        <div class="section">
+          <div class="section-label">Selected Plan</div>
+          <div class="plan-row">
+            <div>
+              <div class="plan-row-label">${escapeHtml(plan.label)}</div>
+              <div class="plan-row-name">${escapeHtml(plan.name)}</div>
+            </div>
+            <div class="plan-row-price">${money(plan.price)}</div>
+          </div>
+          <table class="line-table">
+            <thead><tr><th>Description</th><th>Amount</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="line-name">${escapeHtml(plan.name)}</div>
+                  <div class="line-desc">${escapeHtml(plan.summary)}</div>
+                </td>
+                <td>${money(plan.price)}</td>
+              </tr>
+            </tbody>
+            <tfoot><tr class="total"><td>Total</td><td>${money(plan.price)}</td></tr></tfoot>
+          </table>
+          <div style="margin-top:10px;">
+            <div class="payment-row">
+              <span class="pay-label">Payment Method</span>
+              <span class="pay-val">${escapeHtml(paymentLabel)}</span>
+            </div>
+          </div>
+        </div>
+        ${includesList ? `
+        <div class="section">
+          <div class="section-label">What's Included</div>
+          <div class="includes-list">${includesList}</div>
+        </div>` : ""}
+        <div class="divider"></div>
+        <div class="section">
+          <div class="section-label">Scope of Work</div>
+          <p class="legal-text">${escapeHtml(plan.summary)}<br><br>
+          All exterior surfaces will be treated using appropriate pressure, temperature, and cleaning solutions selected by HomeSHINE based on material type and condition. Scheduling will be coordinated directly with the homeowner prior to each visit. HomeSHINE reserves the right to adjust scope or timing due to weather or property access conditions, with advance notice provided.</p>
+        </div>` : ""}
+
+        ${assessment.checkout?.contractNote ? `
+        <div class="section">
+          <div class="section-label">Access &amp; Scheduling Notes</div>
+          <p class="note-text">${escapeHtml(assessment.checkout.contractNote)}</p>
+        </div>` : ""}
+
+        <div class="divider"></div>
+
+        <div class="section">
+          <div class="section-label">Signatures</div>
+          <div class="sig-block">
+            <div class="sig-box">
+              <div class="sig-name">Homeowner</div>
+              <div class="sig-role">${escapeHtml(assessment.owner.name)}</div>
+              <div class="sig-line"></div>
+              <div class="sig-date-label">Date</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-name">HomeSHINE</div>
+              <div class="sig-role">Steven Maestas, Owner</div>
+              <div class="sig-line"></div>
+              <div class="sig-date-label">Date</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="footer">
+        <p>Thank you for choosing <strong>HomeSHINE</strong>. Questions? <strong>homeshine.vt@gmail.com</strong></p>
+      </div>
+    </div>`;
+
+  return shell(`${assessment.owner.name} — Client Packet`, body, styles);
 }

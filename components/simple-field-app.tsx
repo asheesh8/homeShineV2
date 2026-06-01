@@ -30,10 +30,8 @@ import {
   statusTone,
 } from "@/components/field-app/utils";
 import {
-  notesDocument,
-  receiptDocument,
-  checkoutDocument,
-  contractDocument,
+  fieldReportDocument,
+  clientPacketDocument,
   diplomaDocument,
 } from "@/lib/field-app-documents";
 import {
@@ -147,11 +145,9 @@ type DocOption = { value: string; label: string; generate: () => string };
 
 function DocumentPicker({ assessment, hasCheckout }: { assessment: Assessment; hasCheckout: boolean }) {
   const options: DocOption[] = [
-    { value: "notes", label: "Field Notes", generate: () => notesDocument(assessment) },
-    { value: "receipt", label: "Service Receipt", generate: () => receiptDocument(assessment) },
+    { value: "report", label: "Field Report", generate: () => fieldReportDocument(assessment) },
     ...(hasCheckout ? [
-      { value: "summary", label: "Checkout Summary", generate: () => checkoutDocument(assessment) },
-      { value: "contract", label: "Service Contract", generate: () => contractDocument(assessment) },
+      { value: "packet", label: "Client Packet", generate: () => clientPacketDocument(assessment) },
       { value: "diploma", label: "HomeSHINE Diploma", generate: () => diplomaDocument(assessment) },
     ] : []),
   ];

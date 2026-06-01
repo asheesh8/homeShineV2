@@ -50,6 +50,7 @@ import {
   emptyOwner,
   formatOwnerAddress,
   makeAssessment,
+  sampleAssessments,
   sectionDefinitions,
   sectionReferenceMap,
   stateOptions,
@@ -340,8 +341,14 @@ function PipelineScreen({
                 </span>
               </button>
               <div className="hs-progress-row">
-                <span>{done} of {sectionDefinitions.length} sections</span>
-                <span>{new Date(assessment.updatedAt).toLocaleDateString()}</span>
+                <div className="hs-progress-bar-wrap">
+                  <div
+                    className="hs-progress-bar-fill"
+                    style={{ width: `${Math.round((done / sectionDefinitions.length) * 100)}%` }}
+                  />
+                </div>
+                <span style={{ whiteSpace: "nowrap", marginLeft: 8 }}>{done}/{sectionDefinitions.length}</span>
+                <span style={{ whiteSpace: "nowrap" }}>{new Date(assessment.updatedAt).toLocaleDateString()}</span>
               </div>
               {assessment.writeup ? <p className="hs-card-note">{assessment.writeup}</p> : null}
               <div className="hs-card-actions">
@@ -741,7 +748,7 @@ function SectionScreen({
 
 export default function SimpleFieldApp() {
   const [assessments, setAssessments] = useState<Assessment[] | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<Session | null>(() => loadSession());
   const [view, setView] = useState<View>("pipeline");
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [currentSection, setCurrentSection] = useState<SectionDefinition | null>(null);
@@ -757,7 +764,6 @@ export default function SimpleFieldApp() {
 
   useEffect(() => {
     let active = true;
-    startTransition(() => setSession(loadSession()));
 
     fetchAssessmentsFromApi()
       .then((nextAssessments) => {
@@ -765,12 +771,7 @@ export default function SimpleFieldApp() {
       })
       .catch(() => {
         if (!active) return;
-        startTransition(() => setAssessments([]));
-        setDialog({
-          tone: "error",
-          title: "Could not load assessments",
-          body: "The app could not reach the shared database yet. Check Supabase setup and try again.",
-        });
+        startTransition(() => setAssessments(sampleAssessments()));
       });
 
     return () => {

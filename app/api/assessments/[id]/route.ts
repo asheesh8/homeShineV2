@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import type { Assessment } from "@/lib/simple-field";
 import { mapAssessmentToRow, mapRowToAssessment, type AssessmentRow } from "@/lib/assessment-store";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 type Params = {
   params: Promise<{
@@ -12,6 +12,7 @@ type Params = {
 
 export async function PUT(request: Request, { params }: Params) {
   const { id } = await params;
+  const supabaseAdmin = getSupabaseAdmin();
   const body = (await request.json()) as { assessment?: Assessment };
 
   if (!body.assessment) {
@@ -35,6 +36,7 @@ export async function PUT(request: Request, { params }: Params) {
 
 export async function DELETE(_request: Request, { params }: Params) {
   const { id } = await params;
+  const supabaseAdmin = getSupabaseAdmin();
   const { error } = await supabaseAdmin.from("assessments").delete().eq("id", id);
 
   if (error) {

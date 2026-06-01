@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 
 import type { Assessment } from "@/lib/simple-field";
 import { mapAssessmentToRow, mapRowToAssessment, type AssessmentRow } from "@/lib/assessment-store";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function GET() {
+  const supabaseAdmin = getSupabaseAdmin();
   const { data, error } = await supabaseAdmin
     .from("assessments")
     .select("*")
@@ -18,6 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const supabaseAdmin = getSupabaseAdmin();
   const body = (await request.json()) as { assessment?: Assessment };
   if (!body.assessment) {
     return NextResponse.json({ error: "Assessment is required." }, { status: 400 });

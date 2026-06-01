@@ -1,0 +1,34 @@
+import type { AppUser, Assessment, CheckoutPlanId } from "@/lib/simple-field";
+
+export type View = "pipeline" | "owner" | "menu" | "section";
+export type Session = Pick<AppUser, "id" | "name" | "role">;
+export type LoginForm = { username: string; password: string };
+export type StatusFilter = "all" | Assessment["status"];
+
+export type ToastAction = { label: string; onClick: () => void };
+
+export type ToastState = {
+  tone: "success" | "error";
+  title: string;
+  description: string;
+  actions?: ToastAction[];
+};
+
+export type DialogState = {
+  title: string;
+  body: string;
+  tone: "error" | "confirm";
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm?: () => void;
+};
+
+export type CheckoutPlan = {
+  id: CheckoutPlanId;
+  name: string;
+  price: number;
+  label: string;
+  summary: string;
+  includes: string[];
+  featured?: boolean;
+};

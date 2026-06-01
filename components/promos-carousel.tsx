@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 // ─── Add or remove slides here ───────────────────────────────────────────────
@@ -86,10 +87,12 @@ export function PromosCarousel() {
             }}
           />
         ) : (
-          <img
+          <Image
             key={current}
             src={current}
             alt={`HomeSHINE promo ${index + 1}`}
+            width={1200}
+            height={640}
             style={{
               width: "100%",
               height: 320,

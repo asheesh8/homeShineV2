@@ -504,6 +504,39 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
+}
+
+/* Document picker dropdown */
+.hs-doc-picker {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0 10px 0 11px;
+  height: 36px;
+  transition: border-color 0.15s;
+  position: relative;
+}
+.hs-doc-picker:focus-within {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(47,125,80,.1);
+}
+.hs-doc-select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 18px;
+  min-width: 170px;
 }
 
 .hs-card-badges {

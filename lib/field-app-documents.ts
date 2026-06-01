@@ -136,111 +136,157 @@ function downloadPrintable(title: string, html: string) {
 
 export function notesDocument(assessment: Assessment) {
   const styles = `
-    .page { max-width: 860px; margin: 32px auto; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(24,38,56,.12); }
-    .doc-header { background: linear-gradient(135deg, #182638 0%, #1d4030 100%); padding: 32px 36px; display: flex; align-items: center; gap: 20px; }
+    .page { max-width: 820px; margin: 32px auto; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(24,38,56,.12); }
+    .doc-header { background: linear-gradient(135deg, #182638 0%, #1d4030 100%); padding: 28px 32px; display: flex; align-items: center; gap: 18px; }
     .doc-header-text { color: #fff; }
-    .doc-header-text .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: 4px; }
-    .doc-header-text h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 32px; font-weight: 700; line-height: 1.1; color: #fff; }
-    .doc-header-text .sub { font-size: 13px; color: rgba(255,255,255,.6); margin-top: 6px; }
-    .doc-body { padding: 32px 36px; }
-    .section { margin-bottom: 28px; }
-    .section-label { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--green); margin-bottom: 12px; }
-    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .info-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff; }
-    .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 4px; }
-    .value { font-size: 15px; font-weight: 600; color: var(--ink); }
-    .body-text { font-size: 14.5px; line-height: 1.65; color: var(--ink-2); background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
-    .step-list, .ref-list { margin-top: 10px; padding-left: 18px; display: grid; gap: 6px; }
-    .step-list li { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
-    .ref-list li { font-size: 13px; color: var(--muted); line-height: 1.5; }
-    .divider { height: 1px; background: var(--line); margin: 4px 0 28px; }
-    .muted { color: var(--muted); font-size: 14px; }
-    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .doc-header, .doc-body { padding: 20px; } }
+    .doc-header-text .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 3px; }
+    .doc-header-text h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 700; line-height: 1.1; color: #fff; }
+    .doc-header-text .sub { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 5px; }
+    .doc-body { padding: 28px 32px; }
+    .section { margin-bottom: 24px; }
+    .section-label { font-size: 10.5px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .info-card { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; background: #fff; }
+    .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 3px; }
+    .value { font-size: 14px; font-weight: 600; color: var(--ink); }
+    .writeup-box { font-size: 14px; line-height: 1.7; color: var(--ink-2); background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+    .divider { height: 1px; background: var(--line); margin: 4px 0 24px; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .section-row { display: flex; flex-direction: column; gap: 6px; }
+    .field-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+    .field-row:last-child { border-bottom: none; }
+    .field-key { font-size: 12.5px; color: var(--muted); }
+    .field-val { font-size: 13px; font-weight: 600; color: var(--ink); text-align: right; max-width: 55%; }
+    .section-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+    .section-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: #fff; margin-bottom: 10px; }
+    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .doc-header, .doc-body { padding: 18px; } }
     @media print { body { background: #fff; } .page { box-shadow: none; border: none; border-radius: 0; margin: 0; } }
   `;
+
+  const sectionCards = sectionDefinitions
+    .filter((sec) => assessment.sections[sec.id])
+    .map((sec) => {
+      const values = assessment.sections[sec.id] ?? {};
+      const rows = sec.fields
+        .map((field) => {
+          const value = renderValue(field, values[field.key]);
+          if (!value) return "";
+          return `<div class="field-row"><span class="field-key">${escapeHtml(prettyLabel(field))}</span><span class="field-val">${value}</span></div>`;
+        })
+        .join("");
+      return rows
+        ? `<div class="section-card"><div class="section-header">${escapeHtml(sec.emoji)} ${escapeHtml(sec.label)}</div>${rows}</div>`
+        : "";
+    })
+    .join("");
 
   const body = `
     <div class="page">
       <div class="doc-header">
-        ${homeshineBadgeSvg(52, true)}
+        ${homeshineBadgeSvg(48, true)}
         <div class="doc-header-text">
-          <div class="eyebrow">HomeSHINE Assessment</div>
-          <h1>Assessment Notes</h1>
-          <div class="sub">${escapeHtml(statusLabel(assessment.status))} · ${new Date(assessment.updatedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+          <div class="eyebrow">HomeSHINE · Field Notes</div>
+          <h1>${escapeHtml(assessment.owner.name)}</h1>
+          <div class="sub">${escapeHtml(formatOwnerAddress(assessment.owner))} · ${new Date(assessment.updatedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
         </div>
       </div>
       <div class="doc-body">
         <div class="section">${ownerGrid(assessment.owner)}</div>
         <div class="divider"></div>
-        <div class="section">
-          <div class="section-label">Main Writeup</div>
-          <p class="body-text">${escapeHtml(assessment.writeup || "No writeup saved.")}</p>
-        </div>
-        ${aiSummaryBlock(assessment.aiSummary)}
-        ${sectionsBlock(assessment)}
+        ${assessment.writeup ? `<div class="section"><div class="section-label">Field Writeup</div><p class="writeup-box">${escapeHtml(assessment.writeup)}</p></div>` : ""}
+        ${sectionCards ? `<div class="section"><div class="section-label">Section Details</div>${sectionCards}</div>` : ""}
       </div>
     </div>`;
 
-  return shell(`${assessment.owner.name} — Assessment Notes`, body, styles);
+  return shell(`${assessment.owner.name} — Field Notes`, body, styles);
 }
 
 /* ─── RECEIPT document ─────────────────────────────────────────────────── */
 
 export function receiptDocument(assessment: Assessment) {
   const plan = getCheckoutPlan(assessment.checkout?.planId);
+  const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  const invoiceNum = `HS-${assessment.id.slice(-6).toUpperCase()}`;
+  const paymentLabel = assessment.checkout?.paymentOption === "deposit-monthly" ? "Deposit + Monthly" : "Standard Payment";
+
   const styles = `
-    .page { max-width: 860px; margin: 32px auto; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(24,38,56,.12); }
-    .doc-header { background: linear-gradient(135deg, #182638 0%, #1d4030 100%); padding: 32px 36px; display: flex; align-items: center; gap: 20px; }
-    .doc-header-text { color: #fff; }
-    .doc-header-text .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: 4px; }
-    .doc-header-text h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 32px; font-weight: 700; line-height: 1.1; color: #fff; }
-    .doc-header-text .sub { font-size: 13px; color: rgba(255,255,255,.6); margin-top: 6px; }
-    .doc-body { padding: 32px 36px; }
-    .section { margin-bottom: 28px; }
-    .section-label { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--green); margin-bottom: 12px; }
-    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .info-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff; }
-    .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 4px; }
-    .value { font-size: 15px; font-weight: 600; color: var(--ink); }
-    .plan-banner { border-radius: 16px; padding: 24px 28px; background: linear-gradient(135deg, #182638 0%, #1d4030 100%); color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
-    .plan-name { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; font-weight: 700; }
-    .plan-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: 4px; }
-    .plan-desc { font-size: 13.5px; color: rgba(255,255,255,.7); margin-top: 6px; max-width: 420px; line-height: 1.5; }
-    .plan-price { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 44px; font-weight: 700; white-space: nowrap; }
-    .body-text { font-size: 14.5px; line-height: 1.65; color: var(--ink-2); background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
-    .step-list, .ref-list { margin-top: 10px; padding-left: 18px; display: grid; gap: 6px; }
-    .step-list li { font-size: 14px; color: var(--ink-2); line-height: 1.5; }
-    .ref-list li { font-size: 13px; color: var(--muted); line-height: 1.5; }
-    .divider { height: 1px; background: var(--line); margin: 4px 0 28px; }
-    .muted { color: var(--muted); font-size: 14px; }
-    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .doc-header, .doc-body { padding: 20px; } .plan-banner { flex-direction: column; } }
+    .page { max-width: 680px; margin: 32px auto; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(24,38,56,.12); }
+    .doc-header { background: linear-gradient(135deg, #182638 0%, #1d4030 100%); padding: 28px 32px; display: flex; align-items: center; gap: 18px; }
+    .doc-header-text { color: #fff; flex: 1; }
+    .doc-header-text .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 3px; }
+    .doc-header-text h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; font-weight: 700; color: #fff; }
+    .doc-header-meta { text-align: right; color: rgba(255,255,255,.6); font-size: 12px; line-height: 1.8; }
+    .doc-header-meta strong { display: block; color: #fff; font-size: 13px; }
+    .doc-body { padding: 28px 32px; }
+    .section { margin-bottom: 24px; }
+    .section-label { font-size: 10.5px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .info-card { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; background: #fff; }
+    .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 3px; }
+    .value { font-size: 14px; font-weight: 600; color: var(--ink); }
+    .line-table { width: 100%; border-collapse: collapse; }
+    .line-table th { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 0 8px; text-align: left; border-bottom: 1px solid var(--line); }
+    .line-table th:last-child { text-align: right; }
+    .line-table td { padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--ink-2); vertical-align: top; }
+    .line-table td:last-child { text-align: right; font-weight: 700; color: var(--ink); }
+    .line-table tr.total td { border-top: 2px solid var(--ink); border-bottom: none; padding-top: 14px; font-weight: 700; color: var(--ink); font-size: 16px; }
+    .line-name { font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+    .line-desc { font-size: 12.5px; color: var(--muted); }
+    .payment-row { display: flex; justify-content: space-between; align-items: center; background: var(--green-soft); border: 1px solid #c6e6d3; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; }
+    .payment-row .pay-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--green); }
+    .payment-row .pay-val { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .divider { height: 1px; background: var(--line); margin: 4px 0 24px; }
+    .footer { text-align: center; padding: 20px 32px; background: #f8fafc; border-top: 1px solid var(--line); }
+    .footer p { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+    .footer strong { color: var(--ink); }
+    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .doc-header { flex-direction: column; gap: 10px; } .doc-header-meta { text-align: left; } .doc-body { padding: 18px; } }
     @media print { body { background: #fff; } .page { box-shadow: none; border: none; border-radius: 0; margin: 0; } }
   `;
 
   const body = `
     <div class="page">
       <div class="doc-header">
-        ${homeshineBadgeSvg(52, true)}
+        ${homeshineBadgeSvg(48, true)}
         <div class="doc-header-text">
-          <div class="eyebrow">HomeSHINE Service Packet</div>
-          <h1>Service Receipt</h1>
-          <div class="sub">${countDone(assessment)} of ${sectionDefinitions.length} sections · ${new Date(assessment.updatedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+          <div class="eyebrow">HomeSHINE · Service Receipt</div>
+          <h1>Receipt</h1>
+        </div>
+        <div class="doc-header-meta">
+          <strong>${escapeHtml(invoiceNum)}</strong>
+          ${escapeHtml(today)}
         </div>
       </div>
       <div class="doc-body">
         <div class="section">${ownerGrid(assessment.owner)}</div>
         <div class="divider"></div>
+        <div class="section">
+          <div class="section-label">Services</div>
+          <table class="line-table">
+            <thead><tr><th>Description</th><th>Amount</th></tr></thead>
+            <tbody>
+              ${plan ? `
+              <tr>
+                <td>
+                  <div class="line-name">${escapeHtml(plan.name)}</div>
+                  <div class="line-desc">${escapeHtml(plan.label)} · ${escapeHtml(plan.summary)}</div>
+                </td>
+                <td>${money(plan.price)}</td>
+              </tr>` : `<tr><td colspan="2" style="color:var(--muted);font-size:13px;padding:12px 0;">No plan selected.</td></tr>`}
+            </tbody>
+            ${plan ? `<tfoot><tr class="total"><td>Total</td><td>${money(plan.price)}</td></tr></tfoot>` : ""}
+          </table>
+        </div>
         ${plan ? `
-          <div class="plan-banner">
-            <div>
-              <div class="plan-label">${escapeHtml(plan.label)}</div>
-              <div class="plan-name">${escapeHtml(plan.name)}</div>
-              <div class="plan-desc">${escapeHtml(plan.summary)}</div>
-            </div>
-            <div class="plan-price">${money(plan.price)}</div>
-          </div>` : ""}
-        ${aiSummaryBlock(assessment.aiSummary)}
-        ${sectionsBlock(assessment)}
+        <div class="section">
+          <div class="section-label">Payment</div>
+          <div class="payment-row">
+            <div class="pay-label">Payment Method</div>
+            <div class="pay-val">${escapeHtml(paymentLabel)}</div>
+          </div>
+        </div>` : ""}
+      </div>
+      <div class="footer">
+        <p>Thank you for choosing <strong>HomeSHINE</strong>.<br>Questions? Contact us at <strong>homeshine.vt@gmail.com</strong> or call <strong>(802) 555-0100</strong>.</p>
       </div>
     </div>`;
 

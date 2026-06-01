@@ -7,8 +7,8 @@ import {
   BarChart2,
   Check,
   ChevronLeft,
-  ClipboardList,
-  FileText,
+  ChevronDown,
+  Download,
   Lightbulb,
   LogOut,
   Plus,
@@ -30,13 +30,11 @@ import {
   statusTone,
 } from "@/components/field-app/utils";
 import {
-  openCheckoutDocument,
-  openContractDocument,
-  openDiplomaDocument,
-  openNotesDocument,
-  openReceiptDocument,
-  downloadNotesDocument,
-  downloadReceiptDocument,
+  notesDocument,
+  receiptDocument,
+  checkoutDocument,
+  contractDocument,
+  diplomaDocument,
 } from "@/lib/field-app-documents";
 import {
   type AppUser,
@@ -143,6 +141,51 @@ function getLocalReferenceNotes(assessment: Assessment) {
     .filter((section) => assessment.sections[section.id])
     .flatMap((section) => sectionReferenceMap[section.id] ?? [])
     .slice(0, 5);
+}
+
+type DocOption = { value: string; label: string; generate: () => string };
+
+function DocumentPicker({ assessment, hasCheckout }: { assessment: Assessment; hasCheckout: boolean }) {
+  const options: DocOption[] = [
+    { value: "notes", label: "Field Notes", generate: () => notesDocument(assessment) },
+    { value: "receipt", label: "Service Receipt", generate: () => receiptDocument(assessment) },
+    ...(hasCheckout ? [
+      { value: "summary", label: "Checkout Summary", generate: () => checkoutDocument(assessment) },
+      { value: "contract", label: "Service Contract", generate: () => contractDocument(assessment) },
+      { value: "diploma", label: "HomeSHINE Diploma", generate: () => diplomaDocument(assessment) },
+    ] : []),
+  ];
+
+  function download(opt: DocOption) {
+    const html = opt.generate();
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `homeshine-${opt.value}-${assessment.owner.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+
+  return (
+    <div className="hs-doc-picker">
+      <Download size={15} style={{ color: "var(--green)", flexShrink: 0 }} />
+      <select
+        className="hs-doc-select"
+        defaultValue=""
+        onChange={(e) => {
+          const opt = options.find((o) => o.value === e.target.value);
+          if (opt) { download(opt); e.currentTarget.value = ""; }
+        }}
+      >
+        <option value="" disabled>Download document…</option>
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <ChevronDown size={14} style={{ color: "var(--muted)", flexShrink: 0, pointerEvents: "none", marginLeft: -24 }} />
+    </div>
+  );
 }
 
 function ConditionButtons({
@@ -352,14 +395,7 @@ function PipelineScreen({
               </div>
               {assessment.writeup ? <p className="hs-card-note">{assessment.writeup}</p> : null}
               <div className="hs-card-actions">
-                <Button type="button" variant="secondary" onClick={() => openNotesDocument(assessment)}>
-                  <ClipboardList size={16} />
-                  Notes
-                </Button>
-                <Button type="button" variant="secondary" onClick={() => openReceiptDocument(assessment)}>
-                  <FileText size={16} />
-                  Receipt
-                </Button>
+                <DocumentPicker assessment={assessment} hasCheckout={!!assessment.checkout?.planId} />
                 {assessment.status === "draft" ? (
                   <Button type="button" variant="danger" onClick={() => onDeleteDraft(assessment.id)} aria-label="Delete draft">
                     <Trash2 size={16} />
@@ -517,11 +553,7 @@ function CheckoutPanel({
             placeholder="Optional contract, access, or scheduling note"
             onBlur={(event) => onNoteChange(event.target.value)}
           />
-          <div className="hs-card-actions">
-            <Button type="button" variant="secondary" onClick={() => openCheckoutDocument(assessment)}>Summary</Button>
-            <Button type="button" variant="secondary" onClick={() => openContractDocument(assessment)}>Contract</Button>
-            <Button type="button" onClick={() => openDiplomaDocument(assessment)}>Diploma</Button>
-          </div>
+          <DocumentPicker assessment={assessment} hasCheckout={true} />
         </>
       ) : null}
     </Panel>
@@ -929,17 +961,7 @@ export default function SimpleFieldApp() {
         setCurrentId(null);
         setView("pipeline");
       });
-      showToast({
-        tone: "success",
-        title: "Assessment saved",
-        description: "Notes and receipt are ready from the pipeline.",
-        actions: [
-          { label: "Open notes", onClick: () => openNotesDocument(saved) },
-          { label: "Download notes", onClick: () => downloadNotesDocument(saved) },
-          { label: "Open receipt", onClick: () => openReceiptDocument(saved) },
-          { label: "Download receipt", onClick: () => downloadReceiptDocument(saved) },
-        ],
-      });
+      showToast({ tone: "success", title: "Assessment saved", description: "Download documents from the pipeline card." });
     } catch (error) {
       setDialog({ tone: "error", title: "Assessment could not be saved", body: error instanceof Error ? error.message : "Please try again." });
     }

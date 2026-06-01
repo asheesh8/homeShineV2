@@ -14,9 +14,10 @@ export function HomeShineLogo({ size = 64 }: HomeShineLogoProps) {
         height: size,
         borderRadius: "50%",
         background:
-          "radial-gradient(circle at 38% 48%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.30) 8%, transparent 18%), linear-gradient(145deg, #030808 0%, #0b1114 48%, #050607 100%)",
-        border: "1px solid rgba(255,255,255,.14)",
-        boxShadow: "0 12px 28px rgba(0,0,0,.22), inset 0 0 18px rgba(125,211,252,.10)",
+          "radial-gradient(circle at 38% 48%, rgba(255,255,255,.98) 0%, rgba(255,255,255,.32) 8%, transparent 19%), linear-gradient(145deg, #061018 0%, #111b24 46%, #030607 100%)",
+        border: "2px solid rgba(255,255,255,.78)",
+        boxShadow:
+          "0 0 0 3px rgba(47,125,80,.34), 0 12px 28px rgba(0,0,0,.28), inset 0 0 18px rgba(125,211,252,.14)",
         display: "grid",
         placeItems: "center",
         position: "relative",

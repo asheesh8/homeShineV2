@@ -9,11 +9,17 @@ import {
   ChevronLeft,
   ChevronDown,
   Download,
+  ExternalLink,
+  Eye,
   Lightbulb,
   LogOut,
+  Mail,
+  MessageCircle,
   Plus,
+  Share2,
   Sparkles,
   Trash2,
+  X,
 } from "lucide-react";
 import { HomeShineLogo } from "@/components/homeshine-logo";
 import { Badge, Button, Dialog, FieldLabel, Panel, SelectInput, TextArea, TextInput, ToastHost } from "@/components/field-app/ui";
@@ -141,46 +147,170 @@ function getLocalReferenceNotes(assessment: Assessment) {
     .slice(0, 5);
 }
 
-type DocOption = { value: string; label: string; generate: () => string };
+type DocOption = { value: "report" | "packet" | "diploma"; label: string; generate: () => string };
+type DocPreview = { value: DocOption["value"]; label: string; html: string; url: string; fileName: string };
 
 function DocumentPicker({ assessment, hasCheckout }: { assessment: Assessment; hasCheckout: boolean }) {
+  const [preview, setPreview] = useState<DocPreview | null>(null);
+  const [shareError, setShareError] = useState("");
+  const checkoutOptions: DocOption[] = [
+    { value: "packet", label: "Client Packet", generate: () => clientPacketDocument(assessment) },
+    { value: "diploma", label: "HomeSHINE Diploma", generate: () => diplomaDocument(assessment) },
+  ];
   const options: DocOption[] = [
     { value: "report", label: "Field Report", generate: () => fieldReportDocument(assessment) },
-    ...(hasCheckout ? [
-      { value: "packet", label: "Client Packet", generate: () => clientPacketDocument(assessment) },
-      { value: "diploma", label: "HomeSHINE Diploma", generate: () => diplomaDocument(assessment) },
-    ] : []),
+    ...(hasCheckout ? checkoutOptions : []),
   ];
 
-  function download(opt: DocOption) {
+  useEffect(() => {
+    return () => {
+      if (preview?.url) URL.revokeObjectURL(preview.url);
+    };
+  }, [preview?.url]);
+
+  function fileNameFor(opt: DocOption) {
+    const client = assessment.owner.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "client";
+    return `homeshine-${opt.value}-${client}.html`;
+  }
+
+  function openPreview(opt: DocOption) {
     const html = opt.generate();
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
+    setPreview((current) => {
+      if (current?.url) URL.revokeObjectURL(current.url);
+      return { value: opt.value, label: opt.label, html, url, fileName: fileNameFor(opt) };
+    });
+    setShareError("");
+  }
+
+  function closePreview() {
+    setPreview((current) => {
+      if (current?.url) URL.revokeObjectURL(current.url);
+      return null;
+    });
+    setShareError("");
+  }
+
+  function downloadPreview() {
+    if (!preview) return;
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `homeshine-${opt.value}-${assessment.owner.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.html`;
+    a.href = preview.url;
+    a.download = preview.fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+
+  function shareMessage() {
+    return `${preview?.label ?? "HomeSHINE document"} for ${assessment.owner.name}. Please see the shared HomeSHINE file.`;
+  }
+
+  async function sharePreview() {
+    if (!preview) return;
+    setShareError("");
+
+    try {
+      const file = new File([preview.html], preview.fileName, { type: "text/html" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: preview.label, text: shareMessage(), files: [file] });
+        return;
+      }
+
+      if (navigator.share) {
+        await navigator.share({ title: preview.label, text: shareMessage() });
+        return;
+      }
+
+      setShareError("Sharing is not available in this browser. Use Download, Email, or Message instead.");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setShareError("Could not open the share sheet. Download the file or send it by email/message.");
+    }
+  }
+
+  function emailPreview() {
+    if (!preview) return;
+    const subject = `${preview.label} for ${assessment.owner.name}`;
+    const body = `${shareMessage()}\n\nIf your device supports attachments, attach the downloaded ${preview.fileName} file.`;
+    window.location.href = `mailto:${encodeURIComponent(assessment.owner.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
+  function messagePreview() {
+    if (!preview) return;
+    const phone = assessment.owner.phone.replace(/[^\d+]/g, "");
+    const separator = /iPad|iPhone|iPod/.test(navigator.userAgent) ? "&" : "?";
+    window.location.href = `sms:${phone}${separator}body=${encodeURIComponent(shareMessage())}`;
+  }
+
+  function openFullScreenPreview() {
+    if (!preview) return;
+    window.open(preview.url, "_blank", "noopener,noreferrer");
   }
 
   return (
-    <div className="hs-doc-picker">
-      <Download size={15} style={{ color: "var(--green)", flexShrink: 0 }} />
-      <select
-        className="hs-doc-select"
-        defaultValue=""
-        onChange={(e) => {
-          const opt = options.find((o) => o.value === e.target.value);
-          if (opt) { download(opt); e.currentTarget.value = ""; }
-        }}
-      >
-        <option value="" disabled>Download document…</option>
-        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-      <ChevronDown size={14} style={{ color: "var(--muted)", flexShrink: 0, pointerEvents: "none", marginLeft: -24 }} />
-    </div>
+    <>
+      <div className="hs-doc-picker">
+        <Eye size={15} style={{ color: "var(--green)", flexShrink: 0 }} />
+        <select
+          className="hs-doc-select"
+          defaultValue=""
+          onChange={(e) => {
+            const opt = options.find((o) => o.value === e.target.value);
+            if (opt) {
+              openPreview(opt);
+              e.currentTarget.value = "";
+            }
+          }}
+        >
+          <option value="" disabled>Preview document...</option>
+          {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <ChevronDown size={14} style={{ color: "var(--muted)", flexShrink: 0, pointerEvents: "none", marginLeft: -24 }} />
+      </div>
+
+      {preview ? (
+        <div className="hs-doc-preview-backdrop" role="dialog" aria-modal="true" aria-labelledby="doc-preview-title">
+          <div className="hs-doc-preview-panel">
+            <div className="hs-doc-preview-header">
+              <div>
+                <p className="hs-kicker">Document Preview</p>
+                <h2 id="doc-preview-title">{preview.label}</h2>
+              </div>
+              <button type="button" className="hs-icon-btn" aria-label="Close preview" onClick={closePreview}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="hs-doc-preview-shell">
+              <iframe className="hs-doc-preview-frame" title={preview.label} srcDoc={preview.html} />
+            </div>
+            {shareError ? <p className="hs-doc-share-error">{shareError}</p> : null}
+            <div className="hs-doc-preview-actions">
+              <Button type="button" onClick={sharePreview}>
+                <Share2 size={17} />
+                Share
+              </Button>
+              <Button type="button" variant="secondary" onClick={downloadPreview}>
+                <Download size={17} />
+                Download
+              </Button>
+              <Button type="button" variant="secondary" onClick={emailPreview}>
+                <Mail size={17} />
+                Email
+              </Button>
+              <Button type="button" variant="secondary" onClick={messagePreview}>
+                <MessageCircle size={17} />
+                Message
+              </Button>
+              <Button type="button" variant="ghost" onClick={openFullScreenPreview}>
+                <ExternalLink size={17} />
+                Open
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 

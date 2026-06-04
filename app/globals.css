@@ -539,6 +539,78 @@ h2 {
   min-width: 170px;
 }
 
+.hs-doc-preview-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.hs-doc-preview-panel {
+  width: min(1120px, calc(100vw - 28px));
+  height: min(92vh, 920px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.34);
+}
+
+.hs-doc-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+
+.hs-doc-preview-header h2 {
+  margin: 2px 0 0;
+  font-size: 21px;
+  line-height: 1.15;
+}
+
+.hs-doc-preview-shell {
+  min-height: 0;
+  background: #111827;
+}
+
+.hs-doc-preview-frame {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+  background: #fff;
+}
+
+.hs-doc-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 14px 18px 16px;
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+.hs-doc-share-error {
+  margin: 0;
+  padding: 10px 18px 0;
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  background: #fff;
+}
+
 .hs-card-badges {
   justify-content: flex-end;
   align-items: flex-start;
@@ -848,6 +920,40 @@ h2 {
 
   .hs-btn {
     width: 100%;
+  }
+
+  .hs-doc-picker,
+  .hs-doc-select {
+    width: 100%;
+  }
+
+  .hs-doc-preview-backdrop {
+    padding: 8px;
+  }
+
+  .hs-doc-preview-panel {
+    width: calc(100vw - 16px);
+    height: calc(100dvh - 16px);
+    border-radius: 10px;
+  }
+
+  .hs-doc-preview-header {
+    padding: 12px 12px;
+  }
+
+  .hs-doc-preview-header h2 {
+    font-size: 18px;
+  }
+
+  .hs-doc-preview-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 10px 12px 12px;
+  }
+
+  .hs-doc-preview-actions .hs-btn {
+    min-height: 42px;
+    padding: 9px 10px;
   }
 }
 

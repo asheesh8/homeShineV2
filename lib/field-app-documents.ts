@@ -437,14 +437,19 @@ export function diplomaDocument(assessment: Assessment) {
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
   const styles = `
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@400;500;600;700&family=Dancing+Script:wght@600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
-    body { background: #1a1a1a; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 32px; }
+    body {
+      background: #1a1a1a;
+      min-height: 100vh;
+      padding: 28px 18px;
+      overflow-x: hidden;
+    }
 
     .cert-outer {
       width: 100%;
       max-width: 900px;
-      aspect-ratio: 1.414 / 1;
+      margin: 0 auto;
       background: linear-gradient(145deg, #fffef9 0%, #fdf8ee 50%, #fffdf5 100%);
       border-radius: 6px;
       position: relative;
@@ -478,9 +483,9 @@ export function diplomaDocument(assessment: Assessment) {
     .cert-bottom-rule { width: 80%; height: 2px; background: linear-gradient(90deg, transparent, #c9a84c 25%, #c9a84c 75%, transparent); margin-top: 20px; }
 
     .eyebrow {
-      font-family: 'Cinzel', Georgia, serif;
+      font-family: 'Inter', Arial, sans-serif;
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 800;
       letter-spacing: .28em;
       text-transform: uppercase;
       color: #c9a84c;
@@ -489,7 +494,7 @@ export function diplomaDocument(assessment: Assessment) {
     }
 
     .cert-title {
-      font-family: 'Cinzel', Georgia, serif;
+      font-family: 'Libre Baskerville', Georgia, serif;
       font-size: clamp(22px, 4vw, 38px);
       font-weight: 700;
       color: #182638;
@@ -500,7 +505,7 @@ export function diplomaDocument(assessment: Assessment) {
     }
 
     .cert-subtitle {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Libre Baskerville', Georgia, serif;
       font-size: clamp(13px, 2vw, 17px);
       color: #4a5568;
       text-align: center;
@@ -534,9 +539,9 @@ export function diplomaDocument(assessment: Assessment) {
     .recipient-block { text-align: center; }
 
     .presented-to {
-      font-family: 'Cinzel', Georgia, serif;
+      font-family: 'Inter', Arial, sans-serif;
       font-size: 10px;
-      font-weight: 500;
+      font-weight: 800;
       letter-spacing: .2em;
       color: #c9a84c;
       text-transform: uppercase;
@@ -544,7 +549,7 @@ export function diplomaDocument(assessment: Assessment) {
     }
 
     .recipient-name {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Libre Baskerville', Georgia, serif;
       font-size: clamp(28px, 5vw, 48px);
       font-weight: 700;
       color: #182638;
@@ -552,7 +557,7 @@ export function diplomaDocument(assessment: Assessment) {
     }
 
     .recipient-address {
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Libre Baskerville', Georgia, serif;
       font-size: clamp(13px, 1.8vw, 16px);
       color: #64748b;
       margin-top: 4px;
@@ -568,9 +573,9 @@ export function diplomaDocument(assessment: Assessment) {
       border: 1px solid #c9a84c;
       border-radius: 999px;
       padding: 8px 18px;
-      font-family: 'Cinzel', Georgia, serif;
+      font-family: 'Inter', Arial, sans-serif;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 800;
       letter-spacing: .12em;
       text-transform: uppercase;
       margin: 14px 0 0;
@@ -589,9 +594,10 @@ export function diplomaDocument(assessment: Assessment) {
     .sig-col { display: flex; flex-direction: column; align-items: center; gap: 5px; }
 
     .sig-script {
-      font-family: 'Dancing Script', cursive;
-      font-size: clamp(22px, 3vw, 30px);
-      font-weight: 700;
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: clamp(18px, 2.5vw, 25px);
+      font-style: italic;
+      font-weight: 400;
       color: #182638;
       line-height: 1.1;
       text-align: center;
@@ -600,7 +606,7 @@ export function diplomaDocument(assessment: Assessment) {
     .sig-line-el { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, #c9a84c 20%, #182638 50%, #c9a84c 80%, transparent); }
 
     .sig-name-label {
-      font-family: 'Cinzel', Georgia, serif;
+      font-family: 'Inter', Arial, sans-serif;
       font-size: 9px;
       font-weight: 600;
       letter-spacing: .15em;
@@ -619,7 +625,7 @@ export function diplomaDocument(assessment: Assessment) {
     .sig-divider svg { opacity: .45; }
 
     .cert-date {
-      font-family: 'Cinzel', Georgia, serif;
+      font-family: 'Inter', Arial, sans-serif;
       font-size: 10px;
       font-weight: 500;
       letter-spacing: .16em;
@@ -632,6 +638,123 @@ export function diplomaDocument(assessment: Assessment) {
     @media print {
       body { background: #fff; padding: 0; min-height: unset; }
       .cert-outer { max-width: 100%; aspect-ratio: auto; box-shadow: none; border: 2px solid #c9a84c; page-break-inside: avoid; }
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 18px 10px 28px;
+      }
+
+      .cert-outer {
+        width: calc(100vw - 20px);
+        max-width: calc(100vw - 20px);
+        aspect-ratio: auto;
+        min-height: auto;
+        padding: 30px 24px 28px;
+        border-radius: 12px;
+        justify-content: flex-start;
+        box-shadow:
+          0 0 0 1px #c9a84c,
+          0 0 0 4px #f5f0e8,
+          0 0 0 6px #c9a84c,
+          0 18px 46px rgba(0,0,0,.45),
+          inset 0 0 50px rgba(201,168,76,.05);
+      }
+
+      .corner {
+        width: 62px;
+        height: 62px;
+      }
+
+      .corner-tl { top: 12px; left: 12px; }
+      .corner-tr { top: 12px; right: 12px; }
+      .corner-bl { bottom: 12px; left: 12px; }
+      .corner-br { bottom: 12px; right: 12px; }
+
+      .watermark svg {
+        width: 220px;
+        height: 220px;
+      }
+
+      .cert-top-rule {
+        margin-bottom: 14px;
+      }
+
+      .cert-title {
+        font-size: 23px;
+        margin-bottom: 12px;
+      }
+
+      .cert-subtitle {
+        font-size: 13.5px;
+        line-height: 1.45;
+        margin-bottom: 16px;
+      }
+
+      .cert-subtitle br {
+        display: none;
+      }
+
+      .badge-row {
+        display: grid;
+        grid-template-columns: 62px minmax(0, 1fr) 62px;
+        gap: 10px;
+        width: 100%;
+      }
+
+      .badge-seal {
+        width: 62px;
+        height: 62px;
+      }
+
+      .badge-seal svg {
+        width: 44px;
+        height: 44px;
+      }
+
+      .recipient-name {
+        font-size: 30px;
+        overflow-wrap: anywhere;
+      }
+
+      .recipient-address {
+        font-size: 14px;
+        overflow-wrap: anywhere;
+      }
+
+      .plan-pill {
+        max-width: 100%;
+        white-space: normal;
+        text-align: center;
+        justify-content: center;
+        padding: 8px 12px;
+        font-size: 9px;
+      }
+
+      .sig-row {
+        width: 100%;
+        gap: 10px;
+        margin-top: 16px;
+        grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+      }
+
+      .sig-script {
+        font-size: 20px;
+      }
+
+      .sig-name-label {
+        font-size: 7.5px;
+        letter-spacing: .08em;
+      }
+
+      .sig-divider {
+        padding-bottom: 20px;
+      }
+
+      .cert-date {
+        font-size: 8.5px;
+        letter-spacing: .1em;
+      }
     }
   `;
 
@@ -659,7 +782,7 @@ export function diplomaDocument(assessment: Assessment) {
     <rect x="26" y="37" width="12" height="15" rx="1.5" fill="#c9a84c" opacity="0.5"/>
     <path d="M12 28 L32 12 L52 28" stroke="#c9a84c" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="32" cy="32" r="30" stroke="#c9a84c" stroke-width="1.5" fill="none" opacity=".3"/>
-    <text x="32" y="61" text-anchor="middle" font-family="'Cinzel',serif" font-size="6.5" font-weight="600" fill="#c9a84c" letter-spacing="1.5">SHINE</text>
+    <text x="32" y="61" text-anchor="middle" font-family="'Inter',Arial,sans-serif" font-size="6.5" font-weight="800" fill="#c9a84c" letter-spacing="1.5">SHINE</text>
   </svg>`;
 
   const body = `

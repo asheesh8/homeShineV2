@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Award } from "lucide-react";
 import { HomeShineLogo } from "@/components/homeshine-logo";
 
-const FONTS_CSS = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Cinzel:wght@400;600;700&family=Dancing+Script:wght@400;600;700&display=swap');`;
+const CERT_SERIF = "Georgia, 'Times New Roman', serif";
+const CERT_SANS = "'Avenir Next', Avenir, 'Segoe UI', Arial, sans-serif";
+const CERT_SCRIPT = "'Snell Roundhand', 'Apple Chancery', 'Segoe Script', cursive";
 
 const PRINT_CSS = `
 @media print {
@@ -20,7 +22,9 @@ const PRINT_CSS = `
     width: 100% !important;
     max-width: 100% !important;
     box-shadow: none !important;
+    min-height: 100vh !important;
   }
+  .hs-print-hide { display: none !important; }
 }
 `;
 
@@ -72,6 +76,72 @@ function genCertNum() {
 
 // ─── Certificate design ───────────────────────────────────────────────────────
 
+function CertificateLogo({ gold }: { gold: string }) {
+  return (
+    <div
+      aria-label="HomeSHINE"
+      role="img"
+      style={{
+        width: 82,
+        height: 82,
+        borderRadius: "50%",
+        background:
+          "radial-gradient(circle at 38% 44%, rgba(255,255,255,.95) 0 4px, rgba(125,211,252,.34) 5px 15px, transparent 28px), linear-gradient(145deg, #060d13 0%, #172235 58%, #020405 100%)",
+        border: "2px solid rgba(255,255,255,.82)",
+        boxShadow: `0 0 0 3px ${gold}, 0 12px 28px rgba(0,0,0,.28), inset 0 0 18px rgba(125,211,252,.16)`,
+        display: "grid",
+        placeItems: "center",
+        position: "relative",
+        overflow: "hidden",
+        flexShrink: 0,
+      }}
+    >
+      <svg
+        viewBox="0 0 100 100"
+        width={78}
+        height={78}
+        style={{
+          position: "relative",
+          zIndex: 1,
+          overflow: "visible",
+        }}
+      >
+        <path
+          d="M22 34 L50 15 L78 34"
+          fill="none"
+          stroke="white"
+          strokeWidth="7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <text
+          x="50"
+          y="59"
+          textAnchor="middle"
+          fill="white"
+          fontFamily={CERT_SERIF}
+          fontSize="27"
+          fontWeight="700"
+          letterSpacing="1.3"
+        >
+          HOME
+        </text>
+        <text
+          x="50"
+          y="76"
+          textAnchor="middle"
+          fill="#b9d7ff"
+          fontFamily={CERT_SCRIPT}
+          fontSize="22"
+          fontWeight="700"
+        >
+          Shine
+        </text>
+      </svg>
+    </div>
+  );
+}
+
 function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
   const year = new Date().getFullYear();
   const gold = "#c9a227";
@@ -83,13 +153,15 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
       id="hs-certificate"
       style={{
         width: "100%",
-        maxWidth: 720,
+        maxWidth: 760,
         margin: "0 auto",
-        background: "#faf8f3",
-        fontFamily: "'Cormorant Garamond', Georgia, serif",
+        background: "linear-gradient(180deg, #fffdf8 0%, #f7f2e8 100%)",
+        fontFamily: CERT_SERIF,
         boxShadow: "0 24px 64px rgba(0,0,0,0.4)",
         position: "relative",
         overflow: "hidden",
+        borderRadius: 2,
+        border: "1px solid rgba(201, 162, 39, 0.52)",
       }}
     >
       {/* Watermark */}
@@ -100,11 +172,11 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
           top: "44%",
           left: "50%",
           transform: "translate(-50%, -50%) rotate(-30deg)",
-          fontSize: 68,
-          fontFamily: "'Cinzel', serif",
+          fontSize: 58,
+          fontFamily: CERT_SANS,
           fontWeight: 700,
-          color: "rgba(27, 45, 69, 0.042)",
-          letterSpacing: "0.1em",
+          color: "rgba(27, 45, 69, 0.035)",
+          letterSpacing: "0.14em",
           whiteSpace: "nowrap",
           pointerEvents: "none",
           zIndex: 0,
@@ -119,7 +191,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
         style={{
           background: "linear-gradient(180deg, #1b2d45 0%, #243650 100%)",
           color: "white",
-          padding: "22px 28px 0",
+          padding: "26px 34px 0",
           position: "relative",
           zIndex: 1,
         }}
@@ -129,23 +201,23 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            gap: 12,
-            marginBottom: 20,
+            gap: 18,
+            marginBottom: 24,
           }}
         >
           {/* Logo mark — left */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 100 }}>
-            <HomeShineLogo size={54} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, width: 118 }}>
+            <CertificateLogo gold={gold} />
           </div>
 
           {/* Center title */}
           <div style={{ textAlign: "center", flex: 1 }}>
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 9,
+                fontFamily: CERT_SANS,
+                fontSize: 10,
                 letterSpacing: "0.26em",
-                color: "#94a3b8",
+                color: "#c6d3df",
                 textTransform: "uppercase",
                 marginBottom: 5,
               }}
@@ -154,10 +226,10 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
             </div>
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 24,
+                fontFamily: CERT_SANS,
+                fontSize: 25,
                 fontWeight: 700,
-                letterSpacing: "0.1em",
+                letterSpacing: "0.08em",
                 color: "white",
                 lineHeight: 1,
                 marginBottom: 6,
@@ -167,9 +239,10 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
             </div>
             <div
               style={{
-                fontFamily: "'Dancing Script', cursive",
-                fontSize: 17,
-                color: "#7dd3fc",
+                fontFamily: CERT_SERIF,
+                fontSize: 16,
+                fontStyle: "italic",
+                color: "#b9d7ff",
               }}
             >
               HomeSHINE™ Certified
@@ -179,22 +252,22 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
           {/* Verified badge — right */}
           <div
             style={{
-              width: 70,
-              height: 70,
+              width: 78,
+              height: 78,
               borderRadius: "50%",
               border: `2px solid ${gold}`,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 2,
+              gap: 3,
               flexShrink: 0,
             }}
           >
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 7.5,
+                fontFamily: CERT_SANS,
+                fontSize: 7,
                 letterSpacing: "0.14em",
                 color: gold,
               }}
@@ -204,8 +277,8 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
             <div style={{ color: gold, fontSize: 9, lineHeight: 1 }}>✦</div>
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 6.5,
+                fontFamily: CERT_SANS,
+                fontSize: 6,
                 letterSpacing: "0.1em",
                 color: "white",
               }}
@@ -213,7 +286,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
               HOMESHINE™
             </div>
             <div
-              style={{ fontFamily: "'Cinzel', serif", fontSize: 9, color: "#94a3b8" }}
+              style={{ fontFamily: CERT_SANS, fontSize: 9, color: "#c6d3df" }}
             >
               {year}
             </div>
@@ -230,12 +303,12 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
       </div>
 
       {/* ── BODY ── */}
-      <div style={{ padding: "28px 32px 24px", position: "relative", zIndex: 1 }}>
+      <div style={{ padding: "32px 38px 28px", position: "relative", zIndex: 1 }}>
         {/* Presented to */}
         <div style={{ textAlign: "center", marginBottom: 4 }}>
           <div
             style={{
-              fontFamily: "'Cinzel', serif",
+              fontFamily: CERT_SANS,
               fontSize: 9,
               letterSpacing: "0.26em",
               color: "#94a3b8",
@@ -250,17 +323,18 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
               display: "inline-block",
               paddingBottom: 6,
               borderBottom: `2px solid ${gold}`,
-              minWidth: 280,
+              minWidth: 300,
+              maxWidth: "100%",
             }}
           >
             <div
               style={{
-                fontFamily: "'Cormorant Garamond', Georgia, serif",
-                fontSize: 42,
-                fontStyle: "italic",
-                fontWeight: 600,
+                fontFamily: CERT_SERIF,
+                fontSize: 40,
+                fontWeight: 700,
                 color: "#1b2d45",
-                lineHeight: 1,
+                lineHeight: 1.08,
+                overflowWrap: "anywhere",
               }}
             >
               {data.ownerName || "Homeowner Name"}
@@ -272,7 +346,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
         <div style={{ textAlign: "center", marginTop: 14, marginBottom: 18 }}>
           <div
             style={{
-              fontFamily: "'Cinzel', serif",
+              fontFamily: CERT_SANS,
               fontSize: 8,
               letterSpacing: "0.22em",
               color: "#94a3b8",
@@ -284,9 +358,10 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
           </div>
           <div
             style={{
-              fontFamily: "'Cormorant Garamond', Georgia, serif",
-              fontSize: 17,
+              fontFamily: CERT_SERIF,
+              fontSize: 16,
               color: "#243650",
+              overflowWrap: "anywhere",
             }}
           >
             {data.address || "—"}
@@ -306,9 +381,9 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
         {/* Body paragraph */}
         <div
           style={{
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontFamily: CERT_SERIF,
             fontSize: 15,
-            lineHeight: 1.85,
+            lineHeight: 1.72,
             color: "#374151",
             textAlign: "center",
             marginBottom: 22,
@@ -327,7 +402,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
           <div style={{ marginBottom: 22 }}>
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: CERT_SANS,
                 fontSize: 8,
                 letterSpacing: "0.26em",
                 color: "#94a3b8",
@@ -355,7 +430,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
                     borderRadius: 999,
                     padding: "5px 14px",
                     fontSize: 11.5,
-                    fontFamily: "'Cinzel', serif",
+                    fontFamily: CERT_SANS,
                     letterSpacing: "0.05em",
                   }}
                 >
@@ -382,7 +457,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
             <div>
               <div
                 style={{
-                  fontFamily: "'Cinzel', serif",
+                  fontFamily: CERT_SANS,
                   fontSize: 8,
                   letterSpacing: "0.2em",
                   color: "#94a3b8",
@@ -394,7 +469,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
               </div>
               <div
                 style={{
-                  fontFamily: "'Cormorant Garamond', Georgia, serif",
+                  fontFamily: CERT_SERIF,
                   fontSize: 20,
                   fontStyle: "italic",
                   color: "white",
@@ -405,7 +480,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
             </div>
             <div
               style={{
-                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                fontFamily: CERT_SERIF,
                 fontSize: 28,
                 fontWeight: 700,
                 color: gold,
@@ -429,7 +504,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
           >
             <div
               style={{
-                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                fontFamily: CERT_SERIF,
                 fontSize: 16,
                 fontStyle: "italic",
                 color: "#374151",
@@ -455,8 +530,8 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
           <div style={{ flex: 1, textAlign: "center" }}>
             <div
               style={{
-                fontFamily: "'Dancing Script', cursive",
-                fontSize: 30,
+                fontFamily: CERT_SCRIPT,
+                fontSize: 26,
                 color: "#1b2d45",
                 lineHeight: 1.1,
                 marginBottom: 4,
@@ -467,7 +542,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
             <div style={{ height: 1, background: gold, marginBottom: 5 }} />
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: CERT_SANS,
                 fontSize: 7,
                 letterSpacing: "0.12em",
                 color: "#64748b",
@@ -481,8 +556,8 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
           {/* Seal — center */}
           <div
             style={{
-              width: 68,
-              height: 68,
+              width: 72,
+              height: 72,
               borderRadius: "50%",
               border: "2px solid #1b2d45",
               background: "rgba(27, 45, 69, 0.05)",
@@ -496,7 +571,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
           >
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: CERT_SANS,
                 fontSize: 6.5,
                 letterSpacing: "0.1em",
                 color: "#1b2d45",
@@ -507,8 +582,8 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
             </div>
             <div
               style={{
-                fontFamily: "'Dancing Script', cursive",
-                fontSize: 14,
+                fontFamily: CERT_SCRIPT,
+                fontSize: 13,
                 color: "#1b2d45",
                 lineHeight: 1,
               }}
@@ -522,8 +597,9 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
           <div style={{ flex: 1, textAlign: "center" }}>
             <div
               style={{
-                fontFamily: "'Dancing Script', cursive",
-                fontSize: 22,
+                fontFamily: CERT_SERIF,
+                fontSize: 19,
+                fontWeight: 700,
                 color: "#1b2d45",
                 lineHeight: 1.2,
                 marginBottom: 4,
@@ -534,7 +610,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
             <div style={{ height: 1, background: gold, marginBottom: 5 }} />
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: CERT_SANS,
                 fontSize: 7,
                 letterSpacing: "0.12em",
                 color: "#64748b",
@@ -561,7 +637,7 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
       <div
         style={{
           background: "linear-gradient(180deg, #243650 0%, #1b2d45 100%)",
-          padding: "12px 28px",
+          padding: "12px 34px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -571,19 +647,20 @@ function Certificate({ data, certNum }: { data: FormData; certNum: string }) {
       >
         <div
           style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 10,
-            color: "#94a3b8",
+            fontFamily: CERT_SANS,
+            fontSize: 9,
+            color: "#c6d3df",
             letterSpacing: "0.06em",
+            lineHeight: 1.35,
           }}
         >
           HomeSHINE™ · Vermont · homeshinevt.com · 802-391-9977
         </div>
         <div
           style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 10,
-            color: "#64748b",
+            fontFamily: CERT_SANS,
+            fontSize: 9,
+            color: "#94a3b8",
             letterSpacing: "0.08em",
           }}
         >
@@ -633,11 +710,11 @@ export default function CertificatePage() {
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    border: "2px solid var(--border)",
+    border: "2px solid var(--line)",
     borderRadius: 14,
     padding: "14px",
     fontSize: 18,
-    background: "var(--white)",
+    background: "var(--paper)",
   };
 
   const labelStyle: React.CSSProperties = {
@@ -645,7 +722,7 @@ export default function CertificatePage() {
     fontSize: 15,
     fontWeight: 700,
     marginBottom: 8,
-    color: "var(--navy)",
+    color: "var(--ink)",
   };
 
   const navPillStyle: React.CSSProperties = {
@@ -661,16 +738,17 @@ export default function CertificatePage() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: FONTS_CSS + PRINT_CSS }} />
+      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
 
       <main style={{ minHeight: "100vh", background: "var(--bg)", paddingBottom: 52 }}>
         {/* Header */}
         <div
           style={{
-            background: "linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%)",
+            background: "linear-gradient(135deg, var(--header) 0%, var(--header-2) 70%, #123622 100%)",
             color: "white",
             padding: "18px 20px",
-            boxShadow: "0 10px 25px rgba(27, 45, 69, 0.16)",
+            borderBottom: "4px solid var(--green)",
+            boxShadow: "0 14px 32px rgba(16, 28, 43, 0.22)",
           }}
         >
           <div
@@ -715,7 +793,7 @@ export default function CertificatePage() {
           <div
             style={{
               background: "linear-gradient(180deg, #ffffff 0%, #f9fbfc 100%)",
-              border: "1px solid var(--border)",
+              border: "1px solid var(--line)",
               borderRadius: 24,
               boxShadow: "var(--shadow)",
               padding: "24px 22px",
@@ -761,7 +839,7 @@ export default function CertificatePage() {
               />
             </div>
 
-            <div style={{ height: 1, background: "var(--border)", marginBottom: 22 }} />
+            <div style={{ height: 1, background: "var(--line)", marginBottom: 22 }} />
 
             {/* Services */}
             <div style={{ marginBottom: 22 }}>
@@ -778,8 +856,8 @@ export default function CertificatePage() {
                         gap: 12,
                         padding: "12px 14px",
                         borderRadius: 14,
-                        border: `2px solid ${checked ? "var(--green)" : "var(--border)"}`,
-                        background: checked ? "var(--green-light)" : "var(--white)",
+                        border: `2px solid ${checked ? "var(--green)" : "var(--line)"}`,
+                        background: checked ? "var(--green-soft)" : "var(--paper)",
                         cursor: "pointer",
                         userSelect: "none",
                       }}
@@ -794,7 +872,7 @@ export default function CertificatePage() {
                         style={{
                           fontSize: 16,
                           fontWeight: checked ? 700 : 400,
-                          color: "var(--navy)",
+                          color: "var(--ink)",
                         }}
                       >
                         {s}
@@ -805,12 +883,12 @@ export default function CertificatePage() {
               </div>
             </div>
 
-            <div style={{ height: 1, background: "var(--border)", marginBottom: 22 }} />
+            <div style={{ height: 1, background: "var(--line)", marginBottom: 22 }} />
 
             {/* Plan */}
             <div style={{ marginBottom: 22 }}>
               <div style={{ marginBottom: 4 }}>
-                <span style={{ fontSize: 15, fontWeight: 700, color: "var(--navy)" }}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
                   Plan Enrolled
                 </span>{" "}
                 <span style={{ fontSize: 14, color: "var(--muted)" }}>(optional)</span>
@@ -831,8 +909,8 @@ export default function CertificatePage() {
                         gap: 12,
                         padding: "14px 16px",
                         borderRadius: 14,
-                        border: `2px solid ${selected ? "var(--green)" : "var(--border)"}`,
-                        background: selected ? "var(--green-light)" : "var(--white)",
+                        border: `2px solid ${selected ? "var(--green)" : "var(--line)"}`,
+                        background: selected ? "var(--green-soft)" : "var(--paper)",
                         cursor: "pointer",
                       }}
                     >
@@ -848,7 +926,7 @@ export default function CertificatePage() {
                           style={{
                             fontSize: 16,
                             fontWeight: selected ? 700 : 400,
-                            color: "var(--navy)",
+                            color: "var(--ink)",
                           }}
                         >
                           {p.name}
@@ -881,12 +959,12 @@ export default function CertificatePage() {
               )}
             </div>
 
-            <div style={{ height: 1, background: "var(--border)", marginBottom: 22 }} />
+            <div style={{ height: 1, background: "var(--line)", marginBottom: 22 }} />
 
             {/* Note */}
             <div style={{ marginBottom: 26 }}>
               <div style={{ marginBottom: 4 }}>
-                <span style={{ fontSize: 15, fontWeight: 700, color: "var(--navy)" }}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>
                   Custom Note
                 </span>{" "}
                 <span style={{ fontSize: 14, color: "var(--muted)" }}>(optional)</span>

@@ -1,12 +1,11 @@
 import {
-  type AiSummary,
   type Assessment,
   type FieldDefinition,
   type Owner,
   formatOwnerAddress,
   sectionDefinitions,
 } from "@/lib/simple-field";
-import { countDone, getCheckoutPlan, money, prettyLabel, statusLabel } from "@/components/field-app/utils";
+import { getCheckoutPlan, money, prettyLabel } from "@/components/field-app/utils";
 
 function escapeHtml(value: unknown) {
   return String(value ?? "")
@@ -81,55 +80,6 @@ function ownerGrid(owner: Owner) {
   return `<div class="info-grid">${fields
     .map(([label, value]) => `<div class="info-card"><div class="label">${label}</div><div class="value">${escapeHtml(value)}</div></div>`)
     .join("")}</div>`;
-}
-
-function aiSummaryBlock(aiSummary: AiSummary | null) {
-  if (!aiSummary) return "";
-  const steps = aiSummary.nextSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("");
-  const sources = aiSummary.sources.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
-  return `
-    <div class="section">
-      <div class="section-label">AI Summary</div>
-      <p class="body-text">${escapeHtml(aiSummary.summary)}</p>
-      ${steps ? `<ul class="step-list">${steps}</ul>` : ""}
-      ${sources ? `<ul class="ref-list">${sources}</ul>` : ""}
-    </div>`;
-}
-
-function sectionsBlock(assessment: Assessment) {
-  return sectionDefinitions
-    .filter((section) => assessment.sections[section.id])
-    .map((section) => {
-      const values = assessment.sections[section.id] ?? {};
-      const cards = section.fields
-        .map((field) => {
-          const value = renderValue(field, values[field.key]);
-          if (!value) return "";
-          return `<div class="info-card"><div class="label">${escapeHtml(prettyLabel(field))}</div><div class="value">${value}</div></div>`;
-        })
-        .join("");
-      return `<div class="section"><div class="section-label">${escapeHtml(section.emoji)} ${escapeHtml(section.label)}</div><div class="info-grid">${cards || '<p class="muted">No details saved.</p>'}</div></div>`;
-    })
-    .join("");
-}
-
-function openPrintable(title: string, html: string) {
-  const blob = new Blob([html], { type: "text/html" });
-  const url = URL.createObjectURL(blob);
-  window.open(url, "_blank", "noopener,noreferrer");
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
-
-function downloadPrintable(title: string, html: string) {
-  const blob = new Blob([html], { type: "text/html" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}.html`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 /* ─── NOTES document ───────────────────────────────────────────────────── */

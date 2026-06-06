@@ -3,7 +3,7 @@
 import { startTransition, useState } from "react";
 import type { DialogState, ToastState } from "@/components/field-app/types";
 import type { View } from "@/components/field-app/types";
-import { CHECKOUT_PLANS } from "@/components/field-app/utils";
+import { CHECKOUT_PLANS, buildCheckoutAmounts } from "@/components/field-app/utils";
 import {
   createAssessment,
   deleteAssessment,
@@ -209,13 +209,16 @@ export function useAssessments({ showToast, showDialog }: NotifyFns) {
 
   function pickPlan(plan: (typeof CHECKOUT_PLANS)[number]) {
     const existing = currentAssessment?.checkout;
+    const paymentOption = plan.id === "protection" ? existing?.paymentOption ?? "deposit-monthly" : "full";
+    const amounts = buildCheckoutAmounts(plan, paymentOption);
     void saveCheckout({
       planId: plan.id,
       planName: plan.name,
       planPrice: plan.price,
-      paymentOption: plan.id === "protection" ? existing?.paymentOption ?? "deposit-monthly" : "full",
+      paymentOption,
       createdAt: existing?.createdAt ?? new Date().toISOString(),
       contractNote: existing?.contractNote ?? "",
+      ...amounts,
     });
   }
 

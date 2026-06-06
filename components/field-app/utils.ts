@@ -1,7 +1,10 @@
-import type { Assessment, FieldDefinition } from "@/lib/simple-field";
+import type { Assessment, CheckoutData, FieldDefinition } from "@/lib/simple-field";
 import type { CheckoutPlan } from "@/components/field-app/types";
 
 export const SESSION_KEY = "homeshine-simple-session-v2";
+
+/** Vermont service tax rate */
+export const TAX_RATE = 0.06;
 
 export const CHECKOUT_PLANS: CheckoutPlan[] = [
   {
@@ -20,6 +23,8 @@ export const CHECKOUT_PLANS: CheckoutPlan[] = [
     summary: "A deep clean plus scheduled maintenance to keep buildup from returning.",
     includes: ["Day 1 deep clean", "Month 12 maintenance", "Month 18 tune-up", "Priority scheduling"],
     featured: true,
+    deposit: 500,
+    months: 18,
   },
   {
     id: "shine-ready",
@@ -51,8 +56,55 @@ export function statusTone(status: Assessment["status"]) {
   return "success";
 }
 
+/** Formats a whole-dollar amount: $3,500 */
 export function money(value: number) {
   return `$${Math.round(value).toLocaleString()}`;
+}
+
+/** Formats with up to 2 decimal places (drops .00): $178.33 or $500 */
+export function moneyDecimal(value: number) {
+  const fixed = value.toFixed(2);
+  const [dollars, cents] = fixed.split(".");
+  const formatted = `$${Number(dollars).toLocaleString()}`;
+  return cents === "00" ? formatted : `${formatted}.${cents}`;
+}
+
+/** Calculate tax amount */
+export function calcTax(price: number) {
+  return price * TAX_RATE;
+}
+
+/** Calculate total including tax */
+export function calcTotal(price: number) {
+  return price + calcTax(price);
+}
+
+/**
+ * Build the payment breakdown for deposit-monthly plans.
+ * Returns depositAmount, monthlyAmount, months — all rounded to 2 decimal places.
+ */
+export function calcDepositMonthly(plan: CheckoutPlan) {
+  const total = calcTotal(plan.price);
+  const deposit = plan.deposit ?? 0;
+  const months = plan.months ?? 12;
+  const monthly = (total - deposit) / months;
+  return { depositAmount: deposit, monthlyAmount: monthly, months };
+}
+
+/**
+ * Build the full tax + payment fields to merge into CheckoutData.
+ */
+export function buildCheckoutAmounts(
+  plan: CheckoutPlan,
+  paymentOption: CheckoutData["paymentOption"]
+): Pick<CheckoutData, "taxRate" | "taxAmount" | "totalAmount" | "depositAmount" | "monthlyAmount" | "months"> {
+  const taxAmount = calcTax(plan.price);
+  const totalAmount = plan.price + taxAmount;
+  if (paymentOption === "deposit-monthly" && plan.deposit != null && plan.months != null) {
+    const { depositAmount, monthlyAmount, months } = calcDepositMonthly(plan);
+    return { taxRate: TAX_RATE, taxAmount, totalAmount, depositAmount, monthlyAmount, months };
+  }
+  return { taxRate: TAX_RATE, taxAmount, totalAmount };
 }
 
 export function countDone(assessment: Assessment) {

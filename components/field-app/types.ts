@@ -31,4 +31,8 @@ export type CheckoutPlan = {
   summary: string;
   includes: string[];
   featured?: boolean;
+  /** Upfront deposit amount — only for plans that support deposit-monthly */
+  deposit?: number;
+  /** Number of monthly instalments — only for plans that support deposit-monthly */
+  months?: number;
 };

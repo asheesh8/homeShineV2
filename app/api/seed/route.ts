@@ -118,6 +118,12 @@ const SAMPLE_ASSESSMENTS: Assessment[] = [
       createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       contractNote:
         "Access via side gate — David will leave unlocked on service day. Prefer morning scheduling. Month 12 and Month 18 visits to be booked 30 days in advance.",
+      taxRate: 0.06,
+      taxAmount: 210,
+      totalAmount: 3710,
+      depositAmount: 500,
+      monthlyAmount: 178.33,
+      months: 18,
     },
     sections: {
       ...makeAssessment().sections,

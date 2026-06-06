@@ -36,6 +36,18 @@ export type CheckoutData = {
   paymentOption: "full" | "deposit-monthly";
   createdAt: string;
   contractNote: string;
+  /** Tax rate as a decimal, e.g. 0.06 for 6% */
+  taxRate: number;
+  /** Dollar amount of tax (planPrice * taxRate) */
+  taxAmount: number;
+  /** Total with tax (planPrice + taxAmount) */
+  totalAmount: number;
+  /** Deposit due today — only set when paymentOption === "deposit-monthly" */
+  depositAmount?: number;
+  /** Monthly installment — only set when paymentOption === "deposit-monthly" */
+  monthlyAmount?: number;
+  /** Number of monthly installments — only set when paymentOption === "deposit-monthly" */
+  months?: number;
 };
 
 export type Assessment = {
@@ -497,6 +509,12 @@ export function sampleAssessments(): Assessment[] {
         createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
         contractNote:
           "Access via side gate — David will leave unlocked on service day. Prefer morning scheduling.",
+        taxRate: 0.06,
+        taxAmount: 210,
+        totalAmount: 3710,
+        depositAmount: 500,
+        monthlyAmount: 178.33,
+        months: 18,
       },
       sections: {
         ...makeAssessment().sections,

@@ -2,7 +2,15 @@
 
 import { FileText, Mail } from "lucide-react";
 import { Button } from "@/components/field-app/ui";
-import { CHECKOUT_PLANS, money } from "@/components/field-app/utils";
+import {
+  CHECKOUT_PLANS,
+  calcDepositMonthly,
+  calcTax,
+  calcTotal,
+  money,
+  moneyDecimal,
+  TAX_RATE,
+} from "@/components/field-app/utils";
 import { clientPacketDocument } from "@/lib/field-app-documents";
 import { type Assessment, type CheckoutData, formatOwnerAddress } from "@/lib/simple-field";
 
@@ -14,8 +22,17 @@ export function Step3Review({
   checkout: Partial<CheckoutData>;
 }) {
   const plan = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
-  const paymentLabel =
-    checkout.paymentOption === "deposit-monthly" ? "Deposit + monthly" : "Pay in full";
+  const isDepositMonthly = checkout.paymentOption === "deposit-monthly";
+  const paymentLabel = isDepositMonthly ? "Deposit + monthly" : "Pay in full";
+
+  const subtotal  = plan?.price ?? 0;
+  const taxAmount = calcTax(subtotal);
+  const total     = calcTotal(subtotal);
+
+  const breakdown =
+    plan && isDepositMonthly && plan.deposit != null
+      ? calcDepositMonthly(plan)
+      : null;
 
   // Merge checkout into client for document generation
   const previewAssessment: Assessment = {
@@ -33,11 +50,12 @@ export function Step3Review({
 
   function emailClient() {
     const firstName = client.owner.name.split(" ")[0];
-    const subject = encodeURIComponent(
-      `HomeSHINE Quote — ${client.owner.name}`
-    );
+    const subject = encodeURIComponent(`HomeSHINE Quote — ${client.owner.name}`);
+    const paymentLine = breakdown
+      ? `  Deposit today: ${money(breakdown.depositAmount)}\n  Then ${breakdown.months} monthly payments of ${moneyDecimal(breakdown.monthlyAmount)}/mo`
+      : `  Total: ${moneyDecimal(total)} (pay in full)`;
     const body = encodeURIComponent(
-      `Hi ${firstName},\n\nThank you for letting us assess your property at ${formatOwnerAddress(client.owner)}.\n\nHere's your service quote:\n\n  Plan: ${plan?.name ?? "To be confirmed"}\n  Total: ${money(plan?.price ?? 0)}\n  Payment: ${paymentLabel}\n\nI'll follow up shortly with the full client packet and next steps.\n\nBest,\nSteven Maestas\nHomeSHINE\n(802) 555-0100`
+      `Hi ${firstName},\n\nThank you for letting us assess your property at ${formatOwnerAddress(client.owner)}.\n\nHere's your service quote:\n\n  Plan: ${plan?.name ?? "To be confirmed"}\n  Subtotal: ${money(subtotal)}\n  Tax (${Math.round(TAX_RATE * 100)}%): ${moneyDecimal(taxAmount)}\n${paymentLine}\n\nI'll follow up shortly with the full client packet and next steps.\n\nBest,\nSteven Maestas\nHomeSHINE\n(802) 555-0100`
     );
     window.open(`mailto:${client.owner.email}?subject=${subject}&body=${body}`);
   }
@@ -61,7 +79,10 @@ export function Step3Review({
             <p className="hs-review-plan-name">{plan.name}</p>
             <p className="hs-review-plan-payment">{paymentLabel}</p>
           </div>
-          <p className="hs-review-plan-price">{money(plan.price)}</p>
+          <div style={{ textAlign: "right" }}>
+            <p className="hs-review-plan-price">{moneyDecimal(total)}</p>
+            <p className="hs-review-plan-tax">incl. {Math.round(TAX_RATE * 100)}% tax</p>
+          </div>
         </div>
       ) : (
         <div className="hs-step-placeholder-card" style={{ padding: "20px" }}>
@@ -89,6 +110,44 @@ export function Step3Review({
           <strong>{client.owner.email}</strong>
         </div>
       </section>
+
+      {/* Pricing breakdown */}
+      {plan && (
+        <section className="hs-step-section">
+          <p className="hs-step-section-label">Pricing</p>
+          <div className="hs-review-row">
+            <span>Subtotal</span>
+            <strong>{money(subtotal)}</strong>
+          </div>
+          <div className="hs-review-row">
+            <span>Tax ({Math.round(TAX_RATE * 100)}%)</span>
+            <strong>{moneyDecimal(taxAmount)}</strong>
+          </div>
+          <div className="hs-review-row" style={{ borderTop: "2px solid var(--line)", marginTop: 4 }}>
+            <span style={{ fontWeight: 700 }}>Total</span>
+            <strong style={{ fontSize: 17 }}>{moneyDecimal(total)}</strong>
+          </div>
+
+          {/* Deposit + monthly detail */}
+          {breakdown && (
+            <div className="hs-review-payment-breakdown">
+              <div className="hs-review-breakdown-label">Payment schedule</div>
+              <div className="hs-review-breakdown-row">
+                <span>Deposit due today</span>
+                <strong>{money(breakdown.depositAmount)}</strong>
+              </div>
+              <div className="hs-review-breakdown-row">
+                <span>Monthly payment × {breakdown.months}</span>
+                <strong>{moneyDecimal(breakdown.monthlyAmount)}<span style={{ fontWeight: 400, fontSize: 12, color: "var(--muted)" }}>/mo</span></strong>
+              </div>
+              <div className="hs-review-breakdown-row hs-review-breakdown-row--sub">
+                <span>Remaining balance ({breakdown.months} × {moneyDecimal(breakdown.monthlyAmount)})</span>
+                <span>{moneyDecimal(breakdown.monthlyAmount * breakdown.months)}</span>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* What's included */}
       {plan && (

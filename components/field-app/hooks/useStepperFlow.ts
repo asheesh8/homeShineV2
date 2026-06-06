@@ -4,6 +4,7 @@ import { startTransition, useState } from "react";
 import type { DialogState, ToastState } from "@/components/field-app/types";
 import { updateAssessment } from "@/components/field-app/api";
 import { type Assessment, type CheckoutData } from "@/lib/simple-field";
+import { buildCheckoutAmounts, getCheckoutPlan } from "@/components/field-app/utils";
 
 export const STEPPER_STEPS = [
   { label: "Client",   short: "Client" },
@@ -85,13 +86,17 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
       showDialog({ tone: "error", title: "Quote incomplete", body: "Go back to Step 2 and select a plan first." });
       return;
     }
+    const plan = getCheckoutPlan(checkoutDraft.planId);
+    const paymentOption = checkoutDraft.paymentOption ?? "full";
+    const amounts = plan ? buildCheckoutAmounts(plan, paymentOption) : { taxRate: 0.06, taxAmount: 0, totalAmount: checkoutDraft.planPrice ?? 0 };
     const fullCheckout: CheckoutData = {
       planId: checkoutDraft.planId,
       planName: checkoutDraft.planName ?? "",
       planPrice: checkoutDraft.planPrice ?? 0,
-      paymentOption: checkoutDraft.paymentOption ?? "full",
+      paymentOption,
       contractNote: checkoutDraft.contractNote ?? "",
       createdAt: checkoutDraft.createdAt ?? new Date().toISOString(),
+      ...amounts,
     };
     const saved = await persist({ status: "finished", checkout: fullCheckout });
     if (saved) {

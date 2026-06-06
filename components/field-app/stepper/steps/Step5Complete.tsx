@@ -2,7 +2,15 @@
 
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/field-app/ui";
-import { CHECKOUT_PLANS, money } from "@/components/field-app/utils";
+import {
+  CHECKOUT_PLANS,
+  calcDepositMonthly,
+  calcTax,
+  calcTotal,
+  money,
+  moneyDecimal,
+  TAX_RATE,
+} from "@/components/field-app/utils";
 import { clientPacketDocument, receiptDocument } from "@/lib/field-app-documents";
 import { type Assessment, type CheckoutData, formatOwnerAddress } from "@/lib/simple-field";
 
@@ -23,6 +31,16 @@ export function Step5Complete({
   completed: boolean;
 }) {
   const plan = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
+  const isDepositMonthly = checkout.paymentOption === "deposit-monthly";
+
+  const subtotal  = plan?.price ?? 0;
+  const taxAmount = calcTax(subtotal);
+  const total     = calcTotal(subtotal);
+
+  const breakdown =
+    plan && isDepositMonthly && plan.deposit != null
+      ? calcDepositMonthly(plan)
+      : null;
 
   const fullCheckout: CheckoutData = {
     planId: checkout.planId!,
@@ -31,6 +49,12 @@ export function Step5Complete({
     paymentOption: checkout.paymentOption ?? "full",
     contractNote: checkout.contractNote ?? "",
     createdAt: checkout.createdAt ?? new Date().toISOString(),
+    taxRate: checkout.taxRate ?? TAX_RATE,
+    taxAmount: checkout.taxAmount ?? taxAmount,
+    totalAmount: checkout.totalAmount ?? total,
+    depositAmount: checkout.depositAmount,
+    monthlyAmount: checkout.monthlyAmount,
+    months: checkout.months,
   };
 
   const finalAssessment: Assessment = {
@@ -51,7 +75,7 @@ export function Step5Complete({
           <p className="hs-complete-address">{formatOwnerAddress(client.owner)}</p>
           {plan && (
             <div className="hs-complete-plan-chip">
-              {plan.name} &middot; {money(plan.price)}
+              {plan.name} &middot; {moneyDecimal(total)}
             </div>
           )}
         </div>
@@ -107,21 +131,51 @@ export function Step5Complete({
             <strong>{plan.name}</strong>
           </div>
         )}
-        {plan && (
-          <div className="hs-review-row">
-            <span>Total</span>
-            <strong>{money(plan.price)}</strong>
-          </div>
-        )}
         <div className="hs-review-row">
           <span>Payment</span>
-          <strong>
-            {checkout.paymentOption === "deposit-monthly"
-              ? "Deposit + monthly"
-              : "Pay in full"}
-          </strong>
+          <strong>{isDepositMonthly ? "Deposit + monthly" : "Pay in full"}</strong>
         </div>
       </section>
+
+      {/* Pricing breakdown */}
+      {plan && (
+        <section className="hs-step-section">
+          <p className="hs-step-section-label">Pricing</p>
+          <div className="hs-review-row">
+            <span>Subtotal</span>
+            <strong>{money(subtotal)}</strong>
+          </div>
+          <div className="hs-review-row">
+            <span>Tax ({Math.round(TAX_RATE * 100)}%)</span>
+            <strong>{moneyDecimal(taxAmount)}</strong>
+          </div>
+          <div className="hs-review-row" style={{ borderTop: "2px solid var(--line)", marginTop: 4 }}>
+            <span style={{ fontWeight: 700 }}>Total</span>
+            <strong style={{ fontSize: 17 }}>{moneyDecimal(total)}</strong>
+          </div>
+
+          {breakdown && (
+            <div className="hs-review-payment-breakdown">
+              <div className="hs-review-breakdown-label">Payment schedule</div>
+              <div className="hs-review-breakdown-row">
+                <span>Deposit due today</span>
+                <strong>{money(breakdown.depositAmount)}</strong>
+              </div>
+              <div className="hs-review-breakdown-row">
+                <span>Monthly payment × {breakdown.months}</span>
+                <strong>
+                  {moneyDecimal(breakdown.monthlyAmount)}
+                  <span style={{ fontWeight: 400, fontSize: 12, color: "var(--muted)" }}>/mo</span>
+                </strong>
+              </div>
+              <div className="hs-review-breakdown-row hs-review-breakdown-row--sub">
+                <span>Remaining balance</span>
+                <span>{moneyDecimal(breakdown.monthlyAmount * breakdown.months)}</span>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       {checkout.contractNote && (
         <section className="hs-step-section">

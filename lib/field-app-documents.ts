@@ -5,7 +5,7 @@ import {
   formatOwnerAddress,
   sectionDefinitions,
 } from "@/lib/simple-field";
-import { getCheckoutPlan, money, prettyLabel } from "@/components/field-app/utils";
+import { getCheckoutPlan, money, moneyDecimal, prettyLabel, TAX_RATE, calcTax, calcTotal, calcDepositMonthly } from "@/components/field-app/utils";
 
 function escapeHtml(value: unknown) {
   return String(value ?? "")
@@ -161,9 +161,22 @@ export function notesDocument(assessment: Assessment) {
 
 export function receiptDocument(assessment: Assessment) {
   const plan = getCheckoutPlan(assessment.checkout?.planId);
+  const co = assessment.checkout;
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   const invoiceNum = `HS-${assessment.id.slice(-6).toUpperCase()}`;
-  const paymentLabel = assessment.checkout?.paymentOption === "deposit-monthly" ? "Deposit + Monthly" : "Standard Payment";
+  const isDepositMonthly = co?.paymentOption === "deposit-monthly";
+  const paymentLabel = isDepositMonthly ? "Deposit + Monthly" : "Pay in Full";
+
+  /* ── price math — prefer stored amounts, fall back to live calc ── */
+  const subtotal  = plan?.price ?? 0;
+  const taxAmt    = co?.taxAmount   ?? calcTax(subtotal);
+  const taxRate   = co?.taxRate     ?? TAX_RATE;
+  const total     = co?.totalAmount ?? calcTotal(subtotal);
+
+  /* ── deposit / monthly ── */
+  const storedBreakdown = co?.depositAmount != null && co?.monthlyAmount != null && co?.months != null
+    ? { depositAmount: co.depositAmount, monthlyAmount: co.monthlyAmount, months: co.months }
+    : (plan && isDepositMonthly && plan.deposit != null ? calcDepositMonthly(plan) : null);
 
   const styles = `
     .page { max-width: 680px; margin: 32px auto; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(24,38,56,.12); }
@@ -183,14 +196,20 @@ export function receiptDocument(assessment: Assessment) {
     .line-table { width: 100%; border-collapse: collapse; }
     .line-table th { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0 0 8px; text-align: left; border-bottom: 1px solid var(--line); }
     .line-table th:last-child { text-align: right; }
-    .line-table td { padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--ink-2); vertical-align: top; }
-    .line-table td:last-child { text-align: right; font-weight: 700; color: var(--ink); }
-    .line-table tr.total td { border-top: 2px solid var(--ink); border-bottom: none; padding-top: 14px; font-weight: 700; color: var(--ink); font-size: 16px; }
+    .line-table td { padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--ink-2); vertical-align: top; }
+    .line-table td:last-child { text-align: right; font-weight: 600; color: var(--ink); }
+    .line-table tr.tax-row td { color: var(--muted); font-size: 13px; }
+    .line-table tr.total-row td { border-top: 2px solid var(--ink); border-bottom: none; padding-top: 12px; font-weight: 800; color: var(--ink); font-size: 17px; }
     .line-name { font-weight: 700; color: var(--ink); margin-bottom: 2px; }
     .line-desc { font-size: 12.5px; color: var(--muted); }
-    .payment-row { display: flex; justify-content: space-between; align-items: center; background: var(--green-soft); border: 1px solid #c6e6d3; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; }
-    .payment-row .pay-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--green); }
-    .payment-row .pay-val { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .payment-block { background: var(--green-soft); border: 1px solid #c6e6d3; border-radius: 12px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; }
+    .pay-method { display: flex; justify-content: space-between; align-items: center; }
+    .pay-method .pay-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--green); }
+    .pay-method .pay-val { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .pay-schedule { display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #c6e6d3; padding-top: 10px; }
+    .pay-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--ink-2); }
+    .pay-row strong { color: var(--ink); font-weight: 700; }
+    .pay-row.sub { font-size: 12px; color: var(--muted); }
     .divider { height: 1px; background: var(--line); margin: 4px 0 24px; }
     .footer { text-align: center; padding: 20px 32px; background: #f8fafc; border-top: 1px solid var(--line); }
     .footer p { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
@@ -198,6 +217,22 @@ export function receiptDocument(assessment: Assessment) {
     @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .doc-header { flex-direction: column; gap: 10px; } .doc-header-meta { text-align: left; } .doc-body { padding: 18px; } }
     @media print { body { background: #fff; } .page { box-shadow: none; border: none; border-radius: 0; margin: 0; } }
   `;
+
+  const paymentScheduleHtml = storedBreakdown ? `
+    <div class="pay-schedule">
+      <div class="pay-row">
+        <span>Deposit due today</span>
+        <strong>${money(storedBreakdown.depositAmount)}</strong>
+      </div>
+      <div class="pay-row">
+        <span>Monthly payment &times; ${storedBreakdown.months}</span>
+        <strong>${moneyDecimal(storedBreakdown.monthlyAmount)}/mo</strong>
+      </div>
+      <div class="pay-row sub">
+        <span>Remaining balance (${storedBreakdown.months} &times; ${moneyDecimal(storedBreakdown.monthlyAmount)})</span>
+        <span>${moneyDecimal(storedBreakdown.monthlyAmount * storedBreakdown.months)}</span>
+      </div>
+    </div>` : "";
 
   const body = `
     <div class="page">
@@ -224,20 +259,27 @@ export function receiptDocument(assessment: Assessment) {
               <tr>
                 <td>
                   <div class="line-name">${escapeHtml(plan.name)}</div>
-                  <div class="line-desc">${escapeHtml(plan.label)} · ${escapeHtml(plan.summary)}</div>
+                  <div class="line-desc">${escapeHtml(plan.label)} &middot; ${escapeHtml(plan.summary)}</div>
                 </td>
-                <td>${money(plan.price)}</td>
+                <td>${money(subtotal)}</td>
+              </tr>
+              <tr class="tax-row">
+                <td>Tax (${Math.round(taxRate * 100)}%)</td>
+                <td>${moneyDecimal(taxAmt)}</td>
               </tr>` : `<tr><td colspan="2" style="color:var(--muted);font-size:13px;padding:12px 0;">No plan selected.</td></tr>`}
             </tbody>
-            ${plan ? `<tfoot><tr class="total"><td>Total</td><td>${money(plan.price)}</td></tr></tfoot>` : ""}
+            ${plan ? `<tfoot><tr class="total-row"><td>Total</td><td>${moneyDecimal(total)}</td></tr></tfoot>` : ""}
           </table>
         </div>
         ${plan ? `
         <div class="section">
           <div class="section-label">Payment</div>
-          <div class="payment-row">
-            <div class="pay-label">Payment Method</div>
-            <div class="pay-val">${escapeHtml(paymentLabel)}</div>
+          <div class="payment-block">
+            <div class="pay-method">
+              <div class="pay-label">Method</div>
+              <div class="pay-val">${escapeHtml(paymentLabel)}</div>
+            </div>
+            ${paymentScheduleHtml}
           </div>
         </div>` : ""}
       </div>

@@ -2,7 +2,15 @@
 
 import { Check } from "lucide-react";
 import { FieldLabel, TextArea } from "@/components/field-app/ui";
-import { CHECKOUT_PLANS, money } from "@/components/field-app/utils";
+import {
+  CHECKOUT_PLANS,
+  calcDepositMonthly,
+  calcTax,
+  calcTotal,
+  money,
+  moneyDecimal,
+  TAX_RATE,
+} from "@/components/field-app/utils";
 import { type Assessment, type CheckoutData, formatOwnerAddress } from "@/lib/simple-field";
 
 export function Step2Quote({
@@ -15,6 +23,7 @@ export function Step2Quote({
   onUpdate: (patch: Partial<CheckoutData>) => void;
 }) {
   const selectedPlan = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
+  const isDepositMonthly = checkout.paymentOption === "deposit-monthly";
 
   function selectPlan(plan: (typeof CHECKOUT_PLANS)[number]) {
     onUpdate({
@@ -28,6 +37,17 @@ export function Step2Quote({
       createdAt: checkout.createdAt ?? new Date().toISOString(),
     });
   }
+
+  /* ── Price math ── */
+  const subtotal  = selectedPlan?.price ?? 0;
+  const taxAmount = calcTax(subtotal);
+  const total     = calcTotal(subtotal);
+
+  /* ── Deposit / monthly breakdown ── */
+  const breakdown =
+    selectedPlan && isDepositMonthly && selectedPlan.deposit != null
+      ? calcDepositMonthly(selectedPlan)
+      : null;
 
   return (
     <div className="hs-stepper-step">
@@ -91,7 +111,7 @@ export function Step2Quote({
         </div>
       </section>
 
-      {/* Payment option — Protection Plan only */}
+      {/* Payment option — shown whenever a plan is selected */}
       {selectedPlan && (
         <section className="hs-step-section">
           <p className="hs-step-section-label">Payment option</p>
@@ -103,16 +123,34 @@ export function Step2Quote({
             >
               Pay in full
             </button>
-            {selectedPlan.id === "protection" && (
+            {selectedPlan.deposit != null && (
               <button
                 type="button"
-                className={checkout.paymentOption === "deposit-monthly" ? "is-active" : ""}
+                className={isDepositMonthly ? "is-active" : ""}
                 onClick={() => onUpdate({ paymentOption: "deposit-monthly" })}
               >
                 Deposit + monthly
               </button>
             )}
           </div>
+
+          {/* Deposit + monthly breakdown */}
+          {breakdown && (
+            <div className="hs-payment-breakdown">
+              <div className="hs-payment-breakdown-row">
+                <span>Deposit due today</span>
+                <strong>{money(breakdown.depositAmount)}</strong>
+              </div>
+              <div className="hs-payment-breakdown-row hs-payment-breakdown-row--monthly">
+                <span>Then {breakdown.months} monthly payments of</span>
+                <strong>{moneyDecimal(breakdown.monthlyAmount)}<span className="hs-payment-mo">/mo</span></strong>
+              </div>
+              <div className="hs-payment-breakdown-row hs-payment-breakdown-row--sub">
+                <span>Remaining balance ({breakdown.months} × {moneyDecimal(breakdown.monthlyAmount)})</span>
+                <span>{moneyDecimal(breakdown.monthlyAmount * breakdown.months)}</span>
+              </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -127,11 +165,21 @@ export function Step2Quote({
         />
       </section>
 
-      {/* Price total */}
+      {/* Price total with tax */}
       {selectedPlan && (
-        <div className="hs-quote-total-row">
-          <span className="hs-quote-total-label">Quote total</span>
-          <strong className="hs-quote-total-price">{money(selectedPlan.price)}</strong>
+        <div className="hs-quote-total-box">
+          <div className="hs-quote-total-line">
+            <span>Subtotal</span>
+            <span>{money(subtotal)}</span>
+          </div>
+          <div className="hs-quote-total-line">
+            <span>Tax ({Math.round(TAX_RATE * 100)}%)</span>
+            <span>{moneyDecimal(taxAmount)}</span>
+          </div>
+          <div className="hs-quote-total-line hs-quote-total-line--total">
+            <span>Total</span>
+            <strong>{moneyDecimal(total)}</strong>
+          </div>
         </div>
       )}
     </div>

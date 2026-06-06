@@ -2712,11 +2712,12 @@ h2 {
    ========================================================= */
 
 .hs-cal-screen { max-width: 680px; margin: 0 auto; padding: 16px 16px 40px; }
-.hs-cal-screen-header { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.hs-cal-screen-header { display: flex; flex-direction: row; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 .hs-cal-back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; transition: color 0.12s; }
 .hs-cal-back-btn:hover { color: var(--green); }
+.hs-cal-screen-header > div { flex: 1; min-width: 0; }
 .hs-cal-screen-title { font-size: 22px; font-weight: 800; color: var(--ink); margin: 0; }
-.hs-cal-screen-sub { font-size: 13px; color: var(--muted); margin: 0; }
+.hs-cal-screen-sub { font-size: 13px; color: var(--muted); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hs-cal-screen-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .hs-cal-screen-month { font-size: 17px; font-weight: 700; color: var(--ink); }
 .hs-cal-screen-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 20px; }
@@ -2740,7 +2741,7 @@ h2 {
 .hs-cal-upcoming-info strong { font-size: 13.5px; color: var(--ink); }
 .hs-cal-upcoming-info span { font-size: 12px; color: var(--ink-2); }
 .hs-cal-upcoming-plan { font-size: 10.5px; font-weight: 700; color: var(--green) !important; text-transform: uppercase; letter-spacing: .06em; }
-.hs-cal-upcoming-addr { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.hs-cal-upcoming-addr { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px; }
 .hs-cal-drawer-overlay { position: fixed; inset: 0; background: rgba(24,38,56,.35); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
 .hs-cal-drawer { background: var(--surface); border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto; box-shadow: 0 -8px 32px rgba(24,38,56,.18); }
 .hs-cal-drawer-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 20px 0; }
@@ -2762,10 +2763,48 @@ h2 {
 .hs-cal-date-input { width: 100%; padding: 8px 12px; border: 1.5px solid var(--line); border-radius: 8px; font-size: 14px; color: var(--ink); background: var(--surface); margin-top: 4px; }
 .hs-cal-date-input:focus { outline: none; border-color: var(--green); }
 
-@media (max-width: 480px) {
-  .hs-cal-screen-cell { min-height: 56px; }
-  .hs-cal-job-name { display: none; }
+@media (max-width: 540px) {
+  /* ── Calendar ── */
   .hs-cal-screen { padding: 12px 10px 32px; }
+  .hs-cal-screen-header { gap: 8px; }
+  .hs-cal-screen-title { font-size: 18px; }
+  .hs-cal-screen-sub { display: none; }
+  .hs-cal-screen-cell { min-height: 52px; padding: 3px 3px; gap: 2px; }
+  .hs-cal-job-name { display: none; }
+  .hs-cal-job-time { font-size: 8px; }
+  .hs-cal-job-chip { padding: 2px 3px; }
+  .hs-cal-screen-nav { margin-bottom: 8px; }
+  .hs-cal-screen-month { font-size: 15px; }
+  .hs-cal-upcoming-addr { display: none; }
+  .hs-cal-req-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .hs-cal-req-contact { flex-wrap: wrap; }
+
+  /* ── Tax screen ── */
+  .hs-tax-screen { padding: 12px 10px 40px; gap: 12px; }
+  .hs-tax-year-sel { margin-left: 0; }
+  .hs-tax-cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .hs-tax-card { padding: 10px 10px 9px; }
+  .hs-tax-card-value { font-size: 18px; }
+  .hs-tax-panel { padding: 12px; gap: 8px; }
+  .hs-tax-panel-title { font-size: 12px; gap: 4px; }
+  .hs-tax-panel-badge { font-size: 9px; padding: 1px 6px; }
+  .hs-tax-line { font-size: 11px; padding: 5px 0; }
+  .hs-tax-line.is-sub { font-size: 10px; padding-left: 8px; }
+  .hs-tax-line.is-grand { font-size: 13px; }
+  .hs-tax-quarters { grid-template-columns: 1fr; gap: 8px; }
+  .hs-tax-quarter-card { padding: 10px; }
+  .hs-tax-form-row { grid-template-columns: 1fr; }
+  .hs-tax-exp-row { padding: 8px 10px; gap: 6px; }
+  .hs-tax-exp-info strong { font-size: 12px; }
+  .hs-tax-exp-info span { font-size: 10px; }
+  .hs-tax-exp-amt { font-size: 12px; }
+  .hs-tax-pay-links { gap: 8px; }
+  .hs-tax-link-btn { font-size: 11px; padding: 6px 12px; }
+
+  /* ── Pipeline header — wrap buttons to second row ── */
+  .hs-page-title { flex-wrap: wrap; }
+  .hs-page-title-actions { flex-wrap: wrap; gap: 6px; }
+  .hs-page-title-actions .hs-btn { font-size: 12px; padding: 7px 10px; }
 }
 
 /* Duration picker additions */
@@ -2979,7 +3018,7 @@ h2 {
 /* ── Tax Screen ──────────────────────────────────────────────────────── */
 .hs-tax-screen { padding: 16px 16px 40px; max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 
-.hs-tax-year-sel { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; margin-left: auto; }
+.hs-tax-year-sel { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; margin-left: auto; flex-shrink: 0; }
 
 /* Revenue cards */
 .hs-tax-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
@@ -3046,8 +3085,4 @@ h2 {
 .hs-tax-del-btn { all: unset; cursor: pointer; color: var(--muted); padding: 4px; border-radius: 6px; display: flex; }
 .hs-tax-del-btn:hover { color: #ef4444; background: #fef2f2; }
 
-@media (max-width: 480px) {
-  .hs-tax-quarters { grid-template-columns: 1fr; }
-  .hs-tax-form-row { grid-template-columns: 1fr; }
-  .hs-tax-cards { grid-template-columns: repeat(2, 1fr); }
-}
+/* (mobile overrides above handle tax + calendar together at 540px) */

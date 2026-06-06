@@ -88,16 +88,22 @@ export async function POST(request: Request) {
   }
 }
 
-/* PATCH — Steven updates status */
+/* PATCH — Steven updates status and/or reschedules */
 export async function PATCH(request: Request) {
   try {
-    const body = await request.json() as { id: string; status: string };
-    if (!body.id || !body.status) return NextResponse.json({ error: "id and status required." }, { status: 400 });
+    const body = await request.json() as { id: string; status?: string; requestedDate?: string; requestedTime?: string };
+    if (!body.id) return NextResponse.json({ error: "id required." }, { status: 400 });
+
+    const patch: Record<string, string> = {};
+    if (body.status)        patch.status         = body.status;
+    if (body.requestedDate) patch.requested_date = body.requestedDate;
+    if (body.requestedTime) patch.requested_time = body.requestedTime;
+    if (!Object.keys(patch).length) return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
 
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from("booking_requests")
-      .update({ status: body.status })
+      .update(patch)
       .eq("id", body.id)
       .select()
       .single();

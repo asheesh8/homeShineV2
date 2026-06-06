@@ -81,6 +81,9 @@ export function CalendarScreen({
   /* selected booking detail */
   const [detail, setDetail] = useState<Assessment | null>(null);
 
+  /* selected booking request detail */
+  const [detailReq, setDetailReq] = useState<BookingRequest | null>(null);
+
   /* reschedule modal state */
   const [rescheduling, setRescheduling]   = useState(false);
   const [reschedDate,  setReschedDate]    = useState("");
@@ -234,14 +237,16 @@ export function CalendarScreen({
                 </button>
               ))}
               {(reqByDate[dateStr] ?? []).map(r => (
-                <div
+                <button
                   key={r.id}
+                  type="button"
                   className="hs-cal-job-chip hs-cal-req-chip"
                   title={`${r.name} — ${r.serviceType === "consultation" ? "Consultation" : "Assessment"}`}
+                  onClick={() => { setDetailReq(r); setRescheduling(false); }}
                 >
                   <span className="hs-cal-job-time">{fmt12(r.requestedTime)}</span>
                   <span className="hs-cal-job-name">{r.name.split(" ")[0]} ✦</span>
-                </div>
+                </button>
               ))}
             </div>
           );
@@ -288,7 +293,7 @@ export function CalendarScreen({
             }
             const r = item.r;
             return (
-              <div key={r.id} className="hs-cal-upcoming-row" style={{ cursor: "default" }}>
+              <button key={r.id} type="button" className="hs-cal-upcoming-row" onClick={() => { setDetailReq(r); setRescheduling(false); }}>
                 <span className="hs-cal-upcoming-dot" style={{ background: "#2563eb" }} />
                 <div className="hs-cal-upcoming-info">
                   <strong>{r.name} <span style={{ fontSize: 10, fontWeight: 700, color: "#2563eb", textTransform: "uppercase", letterSpacing: ".06em" }}>✦ Request</span></strong>
@@ -298,7 +303,7 @@ export function CalendarScreen({
                   </span>
                 </div>
                 <span className="hs-cal-upcoming-addr">{r.city}</span>
-              </div>
+              </button>
             );
           });
         })()}
@@ -346,6 +351,108 @@ export function CalendarScreen({
           ))
         )}
       </div>
+
+      {/* ── Booking request detail drawer ── */}
+      {detailReq && (() => {
+        const req = detailReq;
+        return (
+          <div className="hs-cal-drawer-overlay" onClick={() => setDetailReq(null)}>
+            <div className="hs-cal-drawer" onClick={e => e.stopPropagation()}>
+              <div className="hs-cal-drawer-header">
+                <div>
+                  <p className="hs-cal-drawer-eyebrow" style={{ color: "#2563eb" }}>
+                    {req.serviceType === "consultation" ? "Consultation Request" : "Home Assessment Request"}
+                  </p>
+                  <h3 className="hs-cal-drawer-name">{req.name}</h3>
+                </div>
+                <button type="button" className="hs-cal-drawer-close" onClick={() => setDetailReq(null)}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="hs-cal-drawer-body">
+                {/* Time */}
+                <div className="hs-cal-drawer-time-block">
+                  <p className="hs-cal-drawer-time-date">{fmtDateLong(req.requestedDate)}</p>
+                  <p className="hs-cal-drawer-time-time">{fmt12(req.requestedTime)}</p>
+                  <p className="hs-cal-drawer-duration" style={{ color: "#2563eb" }}>
+                    {req.city}{req.street ? ` · ${req.street}` : ""}
+                  </p>
+                </div>
+
+                {/* Contact */}
+                <div className="hs-cal-drawer-contact">
+                  <a href={`tel:${req.phone}`} className="hs-cal-contact-btn"><Phone size={14}/> {req.phone}</a>
+                  <a href={`mailto:${req.email}`} className="hs-cal-contact-btn"><Mail size={14}/> {req.email}</a>
+                </div>
+
+                {req.message && (
+                  <div className="hs-cal-drawer-note">
+                    <p className="hs-cal-drawer-note-label">Their message</p>
+                    <p>&ldquo;{req.message}&rdquo;</p>
+                  </div>
+                )}
+
+                {/* Status badge */}
+                <div style={{ marginTop: 8 }}>
+                  <span className={`hs-cal-req-status ${req.status === "confirmed" ? "is-confirmed" : req.status === "declined" ? "is-declined" : ""}`}
+                    style={{ fontSize: 12, padding: "4px 10px", borderRadius: 20, background: req.status === "pending" ? "#fef3c7" : undefined, color: req.status === "pending" ? "#b45309" : undefined }}>
+                    {req.status === "confirmed" ? "✓ Confirmed" : req.status === "declined" ? "✕ Declined" : "⏳ Pending"}
+                  </span>
+                </div>
+
+                {/* Reschedule */}
+                {!rescheduling ? (
+                  <Button type="button" variant="secondary"
+                    onClick={() => { setReschedDate(req.requestedDate); setReschedTime(req.requestedTime); setRescheduling(true); }}
+                    style={{ width: "100%", marginTop: 12 }}>
+                    <RefreshCw size={14}/> Reschedule
+                  </Button>
+                ) : (
+                  <div className="hs-cal-reschedule-box">
+                    <p className="hs-cal-drawer-note-label">New date</p>
+                    <input type="date" className="hs-cal-date-input" value={reschedDate} min={todayStr}
+                      onChange={e => setReschedDate(e.target.value)} />
+                    <p className="hs-cal-drawer-note-label" style={{ marginTop: 10 }}>New time</p>
+                    <div className="hs-time-slots" style={{ flexWrap: "wrap" }}>
+                      {ALL_SLOTS.map(t => (
+                        <button key={t} type="button"
+                          className={`hs-time-slot ${reschedTime === t ? "is-selected" : ""}`}
+                          onClick={() => setReschedTime(t)}>
+                          {fmt12(t)}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                      <Button type="button" variant="secondary" onClick={() => setRescheduling(false)} style={{ flex: 1 }}>
+                        Cancel
+                      </Button>
+                      <Button type="button" disabled={!reschedDate || !reschedTime || saving} style={{ flex: 1 }}
+                        onClick={async () => {
+                          setSaving(true);
+                          const res = await fetch("/api/booking-requests", {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id: req.id, requestedDate: reschedDate, requestedTime: reschedTime }),
+                          });
+                          if (res.ok) {
+                            const updated: BookingRequest = await res.json();
+                            setRequests(prev => prev.map(r => r.id === req.id ? updated : r));
+                            setDetailReq(updated);
+                            setRescheduling(false);
+                          }
+                          setSaving(false);
+                        }}>
+                        {saving ? "Saving…" : "Save"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Detail drawer ── */}
       {detail && (

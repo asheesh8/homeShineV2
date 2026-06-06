@@ -1,5 +1,5 @@
-import SimpleFieldApp from "@/components/simple-field-app";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <SimpleFieldApp />;
+  redirect("/book");
 }

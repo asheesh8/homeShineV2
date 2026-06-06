@@ -1,28 +1,33 @@
 "use client";
 
 import { useMemo } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { ClipboardList, Plus, Trash2 } from "lucide-react";
 import { Badge, Button, Panel } from "@/components/field-app/ui";
 import { DocumentPicker } from "@/components/field-app/panels/DocumentPicker";
-import type { StatusFilter } from "@/components/field-app/types";
+import type { Session, StatusFilter } from "@/components/field-app/types";
 import { countDone, getCheckoutPlan, statusLabel, statusTone } from "@/components/field-app/utils";
 import { type Assessment, formatOwnerAddress, sectionDefinitions } from "@/lib/simple-field";
 
 export function PipelineScreen({
+  session,
   assessments,
   statusFilter,
   onStatusFilter,
   onNewAssessment,
   onOpenAssessment,
   onDeleteDraft,
+  onNewQuote,
 }: {
+  session: Session;
   assessments: Assessment[] | null;
   statusFilter: StatusFilter;
   onStatusFilter: (value: StatusFilter) => void;
   onNewAssessment: () => void;
   onOpenAssessment: (assessment: Assessment) => void;
   onDeleteDraft: (id: string) => void;
+  onNewQuote: () => void;
 }) {
+  const isStevenOnly = session.id === "steven";
   const filtered = useMemo(() => {
     if (!assessments) return null;
     if (statusFilter === "all") return assessments;
@@ -36,10 +41,18 @@ export function PipelineScreen({
           <p className="hs-kicker">Pipeline</p>
           <h1>Assessments</h1>
         </div>
-        <Button type="button" onClick={onNewAssessment}>
-          <Plus size={18} />
-          New
-        </Button>
+        <div className="hs-page-title-actions">
+          {isStevenOnly && (
+            <Button type="button" variant="secondary" onClick={onNewQuote}>
+              <ClipboardList size={16} />
+              New Quote
+            </Button>
+          )}
+          <Button type="button" onClick={onNewAssessment}>
+            <Plus size={18} />
+            New
+          </Button>
+        </div>
       </div>
 
       <div className="hs-segmented">

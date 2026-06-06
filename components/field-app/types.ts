@@ -1,6 +1,6 @@
 import type { AppUser, Assessment, CheckoutPlanId } from "@/lib/simple-field";
 
-export type View = "pipeline" | "owner" | "menu" | "section";
+export type View = "pipeline" | "owner" | "menu" | "section" | "stepper";
 export type Session = Pick<AppUser, "id" | "name" | "role">;
 export type LoginForm = { username: string; password: string };
 export type StatusFilter = "all" | Assessment["status"];

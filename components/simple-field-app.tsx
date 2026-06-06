@@ -8,16 +8,19 @@ import { PipelineScreen } from "@/components/field-app/screens/PipelineScreen";
 import { OwnerScreen } from "@/components/field-app/screens/OwnerScreen";
 import { MenuScreen } from "@/components/field-app/screens/MenuScreen";
 import { SectionScreen } from "@/components/field-app/screens/SectionScreen";
+import { StepperShell } from "@/components/field-app/stepper/StepperShell";
 import { Dialog, ToastHost } from "@/components/field-app/ui";
 import { useAssessments } from "@/components/field-app/hooks/useAssessments";
 import { useNotifications } from "@/components/field-app/hooks/useNotifications";
 import { useSession } from "@/components/field-app/hooks/useSession";
+import { useStepperFlow } from "@/components/field-app/hooks/useStepperFlow";
 import { getMatches } from "@/components/field-app/utils";
 import { stateOptions, townOptions } from "@/lib/simple-field";
 
 export default function SimpleFieldApp() {
   const { toast, dialog, showToast, showDialog, closeToast, closeDialog } = useNotifications();
   const { session, loginForm, loginError, login, logout, updateLoginField } = useSession();
+  const stepperFlow = useStepperFlow({ showToast, showDialog });
   const {
     assessments,
     view,
@@ -53,6 +56,20 @@ export default function SimpleFieldApp() {
   const townMatches = getMatches(ownerDraft.city, townOptions);
   const stateMatches = getMatches(ownerDraft.state, stateOptions);
 
+  // Stepper autocomplete matches are driven by the stepper draft owner fields
+  const stepperTownMatches = getMatches(stepperFlow.draft.owner.city, townOptions);
+  const stepperStateMatches = getMatches(stepperFlow.draft.owner.state, stateOptions);
+
+  function openStepper() {
+    stepperFlow.reset();
+    setView("stepper");
+  }
+
+  function exitStepper() {
+    setView("pipeline");
+    void loadAssessments(); // refresh list in case a draft was saved
+  }
+
   return (
     <>
       <ToastHost toast={toast} onClose={closeToast} />
@@ -72,12 +89,14 @@ export default function SimpleFieldApp() {
         {session && view === "pipeline" && (
           <PipelineScreen
             key="pipeline"
+            session={session}
             assessments={assessments}
             statusFilter={statusFilter}
             onStatusFilter={setStatusFilter}
             onNewAssessment={openNewAssessment}
             onOpenAssessment={openAssessment}
             onDeleteDraft={askDeleteDraft}
+            onNewQuote={openStepper}
           />
         )}
 
@@ -109,6 +128,16 @@ export default function SimpleFieldApp() {
             onNoteChange={updateContractNote}
             onOpenSection={openSection}
             onSave={saveAndReturn}
+          />
+        )}
+
+        {session && view === "stepper" && (
+          <StepperShell
+            key="stepper"
+            flow={stepperFlow}
+            onExit={exitStepper}
+            townMatches={stepperTownMatches}
+            stateMatches={stepperStateMatches}
           />
         )}
 

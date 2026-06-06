@@ -3,7 +3,7 @@
 import { FileText, Mail } from "lucide-react";
 import { Button } from "@/components/field-app/ui";
 import { CHECKOUT_PLANS, money, moneyDecimal } from "@/components/field-app/utils";
-import { describeTaxRate, type TownTaxRate } from "@/lib/tax-rates";
+import { type TownTaxRate } from "@/lib/tax-rates";
 import { clientPacketDocument } from "@/lib/field-app-documents";
 import { type Assessment, type CheckoutData, formatOwnerAddress } from "@/lib/simple-field";
 
@@ -51,9 +51,7 @@ export function Step3Review({
   function emailClient() {
     const firstName  = client.owner.name.split(" ")[0];
     const subject    = encodeURIComponent(`HomeSHINE Quote — ${client.owner.name}`);
-    const taxDesc    = townTax?.localRate
-      ? `${taxPct}% (${client.owner.city} local option)`
-      : `${taxPct}% VT state`;
+    const taxDesc    = `${taxPct}%`;
     const discountLine = discount > 0
       ? `  Discount${checkout.discountNote ? ` (${checkout.discountNote})` : ""}: -${money(discount)}\n`
       : "";
@@ -95,7 +93,7 @@ export function Step3Review({
             )}
             <p className="hs-review-plan-price">{moneyDecimal(total)}</p>
             <p className="hs-review-plan-tax">
-              incl. {taxPct}% tax{townTax?.localRate ? ` · ${client.owner.city}` : ""}
+              incl. {taxPct}% tax
             </p>
           </div>
         </div>
@@ -138,7 +136,7 @@ export function Step3Review({
             </div>
           )}
           <div className="hs-review-row">
-            <span>Tax ({taxPct}%{townTax ? ` · ${describeTaxRate(townTax)}` : ""})</span>
+            <span>Tax ({taxPct}%)</span>
             <strong>{moneyDecimal(taxAmount)}</strong>
           </div>
           <div className="hs-review-row" style={{ borderTop: "2px solid var(--line)", marginTop: 4 }}>

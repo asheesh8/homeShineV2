@@ -139,7 +139,7 @@ export function Step5Complete({
             </div>
           )}
           <div className="hs-review-row">
-            <span>Tax ({taxPct}%{townTax?.localRate ? ` · ${client.owner.city} local option` : " · VT state"})</span>
+            <span>Tax ({taxPct}%)</span>
             <strong>{moneyDecimal(taxAmount)}</strong>
           </div>
           <div className="hs-review-row" style={{ borderTop: "2px solid var(--line)", marginTop: 4 }}>

@@ -8,7 +8,7 @@ import {
   money,
   moneyDecimal,
 } from "@/components/field-app/utils";
-import { describeTaxRate, type TownTaxRate } from "@/lib/tax-rates";
+import { type TownTaxRate } from "@/lib/tax-rates";
 import { type Assessment, type CheckoutData, formatOwnerAddress } from "@/lib/simple-field";
 
 export function Step2Quote({
@@ -90,11 +90,11 @@ export function Step2Quote({
         ) : townTax ? (
           <>
             <span className="hs-tax-badge-dot" />
-            {client.owner.city}: {describeTaxRate(townTax)}
-            {!townTax.found && <span className="hs-tax-badge-fallback"> (using VT default)</span>}
+            {client.owner.city} tax rate: {taxPct}%
+            {!townTax.found && <span className="hs-tax-badge-fallback"> (VT default)</span>}
           </>
         ) : (
-          <><span className="hs-tax-badge-dot" /> Vermont state tax: 6%</>
+          <><span className="hs-tax-badge-dot" /> Tax rate: 6%</>
         )}
       </div>
 
@@ -281,7 +281,7 @@ export function Step2Quote({
           )}
           <div className="hs-quote-total-line">
             <span>
-              Tax ({taxPct}%{townTax?.localRate ? ` · ${client.owner.city} local option` : " · VT state"})
+              Tax ({taxPct}%)
             </span>
             <span>{moneyDecimal(taxAmount)}</span>
           </div>

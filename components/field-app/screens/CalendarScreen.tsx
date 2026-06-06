@@ -134,6 +134,16 @@ export function CalendarScreen({
     byDate[d].push(a);
   }
 
+  /* confirmed booking requests shown as calendar chips too */
+  const confirmedRequests = requests.filter(r => r.status === "confirmed");
+
+  /* map date → confirmed requests */
+  const reqByDate: Record<string, BookingRequest[]> = {};
+  for (const r of confirmedRequests) {
+    if (!reqByDate[r.requestedDate]) reqByDate[r.requestedDate] = [];
+    reqByDate[r.requestedDate].push(r);
+  }
+
   /* stable colour per assessment id */
   const allBooked = assessments.filter(a => a.booking?.date);
   const colorMap: Record<string, string> = {};
@@ -222,6 +232,16 @@ export function CalendarScreen({
                   <span className="hs-cal-job-name">{a.owner.name.split(" ")[0]}</span>
                 </button>
               ))}
+              {(reqByDate[dateStr] ?? []).map(r => (
+                <div
+                  key={r.id}
+                  className="hs-cal-job-chip hs-cal-req-chip"
+                  title={`${r.name} — ${r.serviceType === "consultation" ? "Consultation" : "Assessment"}`}
+                >
+                  <span className="hs-cal-job-time">{fmt12(r.requestedTime)}</span>
+                  <span className="hs-cal-job-name">{r.name.split(" ")[0]} ✦</span>
+                </div>
+              ))}
             </div>
           );
         })}
@@ -232,31 +252,52 @@ export function CalendarScreen({
         <p className="hs-cal-upcoming-label">Upcoming this month</p>
         {(() => {
           const prefix = `${calYear}-${String(calMonth + 1).padStart(2, "0")}`;
-          const upcoming = assessments
-            .filter(a => a.booking?.date?.startsWith(prefix) && a.booking.date >= todayStr)
-            .sort((a, b) => (a.booking!.date + a.booking!.time).localeCompare(b.booking!.date + b.booking!.time));
 
-          if (!upcoming.length) return (
+          const upcomingAssessments = assessments
+            .filter(a => a.booking?.date?.startsWith(prefix) && a.booking.date >= todayStr)
+            .map(a => ({ type: "assessment" as const, sortKey: a.booking!.date + a.booking!.time, a }));
+
+          const upcomingRequests = confirmedRequests
+            .filter(r => r.requestedDate.startsWith(prefix) && r.requestedDate >= todayStr)
+            .map(r => ({ type: "request" as const, sortKey: r.requestedDate + r.requestedTime, r }));
+
+          const all = [...upcomingAssessments, ...upcomingRequests]
+            .sort((x, y) => x.sortKey.localeCompare(y.sortKey));
+
+          if (!all.length) return (
             <p style={{ fontSize: 13, color: "var(--muted)", padding: "12px 0" }}>No bookings this month.</p>
           );
 
-          return upcoming.map(a => {
-            const p = CHECKOUT_PLANS.find(pl => pl.id === a.checkout?.planId);
+          return all.map(item => {
+            if (item.type === "assessment") {
+              const a = item.a;
+              const p = CHECKOUT_PLANS.find(pl => pl.id === a.checkout?.planId);
+              return (
+                <button key={a.id} type="button" className="hs-cal-upcoming-row"
+                  onClick={() => { setDetail(a); setRescheduling(false); }}>
+                  <span className="hs-cal-upcoming-dot" style={{ background: colorMap[a.id] }} />
+                  <div className="hs-cal-upcoming-info">
+                    <strong>{a.owner.name}</strong>
+                    <span>{fmtDateLong(a.booking!.date)} at {fmt12(a.booking!.time)}</span>
+                    {p && <span className="hs-cal-upcoming-plan">{p.name}</span>}
+                  </div>
+                  <span className="hs-cal-upcoming-addr">{a.owner.city}</span>
+                </button>
+              );
+            }
+            const r = item.r;
             return (
-              <button
-                key={a.id}
-                type="button"
-                className="hs-cal-upcoming-row"
-                onClick={() => { setDetail(a); setRescheduling(false); }}
-              >
-                <span className="hs-cal-upcoming-dot" style={{ background: colorMap[a.id] }} />
+              <div key={r.id} className="hs-cal-upcoming-row" style={{ cursor: "default" }}>
+                <span className="hs-cal-upcoming-dot" style={{ background: "#2563eb" }} />
                 <div className="hs-cal-upcoming-info">
-                  <strong>{a.owner.name}</strong>
-                  <span>{fmtDateLong(a.booking!.date)} at {fmt12(a.booking!.time)}</span>
-                  {p && <span className="hs-cal-upcoming-plan">{p.name}</span>}
+                  <strong>{r.name} <span style={{ fontSize: 10, fontWeight: 700, color: "#2563eb", textTransform: "uppercase", letterSpacing: ".06em" }}>✦ Request</span></strong>
+                  <span>{fmtDateLong(r.requestedDate)} at {fmt12(r.requestedTime)}</span>
+                  <span className="hs-cal-upcoming-plan" style={{ color: "#2563eb" }}>
+                    {r.serviceType === "consultation" ? "Consultation" : "Home Assessment"}
+                  </span>
                 </div>
-                <span className="hs-cal-upcoming-addr">{a.owner.city}</span>
-              </button>
+                <span className="hs-cal-upcoming-addr">{r.city}</span>
+              </div>
             );
           });
         })()}

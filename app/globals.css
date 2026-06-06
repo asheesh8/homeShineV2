@@ -2972,3 +2972,6 @@ h2 {
 .hs-cal-req-status { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
 .hs-cal-req-status.is-confirmed { background: var(--green-soft); color: var(--green); }
 .hs-cal-req-status.is-declined { background: #fef2f2; color: #dc2626; }
+
+/* Confirmed booking request chip on calendar (blue tint) */
+.hs-cal-req-chip { --chip-color: #2563eb; cursor: default; }

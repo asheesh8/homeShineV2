@@ -11,37 +11,53 @@ type Params = {
 };
 
 export async function PUT(request: Request, { params }: Params) {
-  const { id } = await params;
-  const supabaseAdmin = getSupabaseAdmin();
-  const body = (await request.json()) as { assessment?: Assessment };
+  try {
+    const { id } = await params;
+    const supabaseAdmin = getSupabaseAdmin();
 
-  if (!body.assessment) {
-    return NextResponse.json({ error: "Assessment is required." }, { status: 400 });
+    let body: { assessment?: Assessment };
+    try {
+      body = (await request.json()) as { assessment?: Assessment };
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
+
+    if (!body.assessment) {
+      return NextResponse.json({ error: "Assessment is required." }, { status: 400 });
+    }
+
+    const row = mapAssessmentToRow(body.assessment);
+    const { data, error } = await supabaseAdmin
+      .from("assessments")
+      .update(row)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(mapRowToAssessment(data as AssessmentRow));
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const row = mapAssessmentToRow(body.assessment);
-  const { data, error } = await supabaseAdmin
-    .from("assessments")
-    .update(row)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(mapRowToAssessment(data as AssessmentRow));
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  const { id } = await params;
-  const supabaseAdmin = getSupabaseAdmin();
-  const { error } = await supabaseAdmin.from("assessments").delete().eq("id", id);
+  try {
+    const { id } = await params;
+    const supabaseAdmin = getSupabaseAdmin();
+    const { error } = await supabaseAdmin.from("assessments").delete().eq("id", id);
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }

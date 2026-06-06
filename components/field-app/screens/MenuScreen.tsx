@@ -49,11 +49,16 @@ function AiSummaryPanel({
   const [tab, setTab] = useState<AiTab>("summary");
 
   const hasTips = (aiSummary?.nextSteps?.length ?? 0) > 0;
-  const sources = (aiSummary?.sources ?? []) as AiSource[];
-  const hasSources = sources.length > 0;
   const hasContent = !!aiSummary;
 
-  // suppress unused-var warning — localReferences kept for legacy compatibility
+  // Normalize: old format was string[], new format is AiSource[]. Detect which.
+  const rawSources = aiSummary?.sources ?? [];
+  const isStructured = rawSources.length > 0 && typeof rawSources[0] === "object" && rawSources[0] !== null;
+  const sources: AiSource[] = isStructured ? (rawSources as AiSource[]) : [];
+  const hasSources = sources.length > 0;
+  // old string sources exist but aren't usable as cards → prompt regenerate
+  const needsRegenerate = rawSources.length > 0 && !isStructured;
+
   void localReferences;
 
   return (
@@ -94,7 +99,6 @@ function AiSummaryPanel({
             type="button"
             className={tab === "sources" ? "is-active" : ""}
             onClick={() => setTab("sources")}
-            disabled={!hasSources}
           >
             Sources{hasSources ? ` (${sources.length})` : ""}
           </button>
@@ -126,7 +130,9 @@ function AiSummaryPanel({
           ))}
           {!hasSources && (
             <p className="hs-summary-box">
-              No sources yet — regenerate the summary to include article references.
+              {needsRegenerate
+                ? "Hit Generate again — article sources were added in the latest update and will appear on the next run."
+                : "No sources yet. Generate the summary to get relevant article links for this assessment."}
             </p>
           )}
         </div>

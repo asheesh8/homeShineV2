@@ -2721,7 +2721,7 @@ h2 {
 .hs-cal-screen-month { font-size: 17px; font-weight: 700; color: var(--ink); }
 .hs-cal-screen-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 20px; }
 .hs-cal-screen-day-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); text-align: center; padding: 3px 0 6px; }
-.hs-cal-screen-cell { min-height: 72px; border: 1px solid var(--line); border-radius: 8px; padding: 4px 5px; background: var(--surface); display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+.hs-cal-screen-cell { min-height: 72px; border: 1px solid var(--line); border-radius: 8px; padding: 4px 5px; background: var(--surface); display: flex; flex-direction: column; gap: 3px; overflow: visible; }
 .hs-cal-screen-cell.is-pad { background: transparent; border-color: transparent; }
 .hs-cal-screen-cell.is-today { border-color: var(--green); background: var(--green-soft); }
 .hs-cal-screen-cell.is-past { background: #f8fafc; opacity: 0.65; }

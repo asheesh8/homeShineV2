@@ -140,8 +140,9 @@ export function CalendarScreen({
   /* map date → confirmed requests */
   const reqByDate: Record<string, BookingRequest[]> = {};
   for (const r of confirmedRequests) {
-    if (!reqByDate[r.requestedDate]) reqByDate[r.requestedDate] = [];
-    reqByDate[r.requestedDate].push(r);
+    const d = r.requestedDate.slice(0, 10); // guard against any ISO suffix
+    if (!reqByDate[d]) reqByDate[d] = [];
+    reqByDate[d].push(r);
   }
 
   /* stable colour per assessment id */

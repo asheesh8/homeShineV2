@@ -27,7 +27,7 @@ function mapRow(row: Record<string, unknown>): BookingRequest {
     city:          String(row.city),
     state:         String(row.state),
     serviceType:   row.service_type as BookingRequest["serviceType"],
-    requestedDate: String(row.requested_date),
+    requestedDate: String(row.requested_date).slice(0, 10),
     requestedTime: String(row.requested_time).slice(0, 5),
     message:       row.message ? String(row.message) : undefined,
     status:        row.status as BookingRequest["status"],

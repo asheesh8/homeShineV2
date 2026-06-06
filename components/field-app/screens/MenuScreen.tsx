@@ -1,0 +1,235 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronLeft, Trash2 } from "lucide-react";
+import { Badge, Button, Panel, TextArea } from "@/components/field-app/ui";
+import { CheckoutPanel } from "@/components/field-app/panels/CheckoutPanel";
+import { CHECKOUT_PLANS, statusLabel, statusTone } from "@/components/field-app/utils";
+import { type Assessment, type CheckoutData, type SectionDefinition, formatOwnerAddress, sectionDefinitions, sectionReferenceMap } from "@/lib/simple-field";
+
+function getLocalReferenceNotes(assessment: Assessment) {
+  return sectionDefinitions
+    .filter((s) => assessment.sections[s.id])
+    .flatMap((s) => sectionReferenceMap[s.id] ?? [])
+    .slice(0, 5);
+}
+
+type AiSummaryData = NonNullable<Assessment["aiSummary"]>;
+type AiTab = "summary" | "tips" | "sources";
+
+function AiSummaryPanel({
+  aiSummary,
+  localReferences,
+  generating,
+  onGenerate,
+}: {
+  aiSummary: AiSummaryData | null | undefined;
+  localReferences: string[];
+  generating: boolean;
+  onGenerate: () => void;
+}) {
+  const [tab, setTab] = useState<AiTab>("summary");
+
+  const hasTips = (aiSummary?.nextSteps?.length ?? 0) > 0;
+  const sources = aiSummary?.sources?.length ? aiSummary.sources : localReferences;
+  const hasSources = sources.length > 0;
+  const hasContent = !!aiSummary;
+
+  return (
+    <Panel>
+      <div className="hs-section-heading">
+        <div>
+          <p className="hs-kicker">Assistant</p>
+          <h2>AI summary</h2>
+        </div>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={generating}
+          onClick={onGenerate}
+        >
+          {generating ? "Generating…" : "Generate"}
+        </Button>
+      </div>
+
+      {hasContent && (
+        <div className="hs-segmented hs-ai-tabs">
+          <button
+            type="button"
+            className={tab === "summary" ? "is-active" : ""}
+            onClick={() => setTab("summary")}
+          >
+            Summary
+          </button>
+          <button
+            type="button"
+            className={tab === "tips" ? "is-active" : ""}
+            onClick={() => setTab("tips")}
+            disabled={!hasTips}
+          >
+            Tips {hasTips ? `(${aiSummary!.nextSteps!.length})` : ""}
+          </button>
+          <button
+            type="button"
+            className={tab === "sources" ? "is-active" : ""}
+            onClick={() => setTab("sources")}
+            disabled={!hasSources}
+          >
+            Sources {hasSources ? `(${sources.length})` : ""}
+          </button>
+        </div>
+      )}
+
+      {(!hasContent || tab === "summary") && (
+        <p className="hs-summary-box">
+          {aiSummary?.summary ?? "No summary yet. Generate after the writeup and section details are ready."}
+        </p>
+      )}
+
+      {hasContent && tab === "tips" && (
+        <div className="hs-ai-tips-list">
+          {(aiSummary?.nextSteps ?? []).map((step, i) => (
+            <div key={step} className="hs-ai-tip-row">
+              <span className="hs-ai-tip-num">{i + 1}</span>
+              <p>{step}</p>
+            </div>
+          ))}
+          {!hasTips && <p className="hs-summary-box">No tips generated yet.</p>}
+        </div>
+      )}
+
+      {hasContent && tab === "sources" && (
+        <div className="hs-ai-sources-list">
+          {sources.map((source, i) => (
+            <div key={source} className="hs-ai-source-row">
+              <span className="hs-ai-source-index">{i + 1}</span>
+              <p>{source}</p>
+            </div>
+          ))}
+          {!hasSources && <p className="hs-summary-box">No sources available.</p>}
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+export function MenuScreen({
+  assessment,
+  writeupDraft,
+  generatingAiSummary,
+  onBack,
+  onStatus,
+  onDeleteDraft,
+  onWriteup,
+  onGenerateAiSummary,
+  onPickPlan,
+  onPaymentOption,
+  onNoteChange,
+  onOpenSection,
+  onSave,
+}: {
+  assessment: Assessment;
+  writeupDraft: string;
+  generatingAiSummary: boolean;
+  onBack: () => void;
+  onStatus: (status: Assessment["status"]) => void;
+  onDeleteDraft: (id: string) => void;
+  onWriteup: (value: string) => void;
+  onGenerateAiSummary: () => void;
+  onPickPlan: (plan: (typeof CHECKOUT_PLANS)[number]) => void;
+  onPaymentOption: (paymentOption: CheckoutData["paymentOption"]) => void;
+  onNoteChange: (note: string) => void;
+  onOpenSection: (section: SectionDefinition) => void;
+  onSave: () => void;
+}) {
+  const localReferences = getLocalReferenceNotes(assessment);
+
+  return (
+    <section className="hs-page hs-screen-enter">
+      <Button type="button" variant="ghost" onClick={onBack}>
+        <ChevronLeft size={18} />
+        Pipeline
+      </Button>
+
+      <Panel>
+        <div className="hs-section-heading">
+          <div>
+            <p className="hs-kicker">{formatOwnerAddress(assessment.owner)}</p>
+            <h1>{assessment.owner.name}</h1>
+          </div>
+          <Badge tone={statusTone(assessment.status)}>{statusLabel(assessment.status)}</Badge>
+        </div>
+        <div className="hs-segmented">
+          {(["draft", "ongoing", "finished"] as Assessment["status"][]).map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={assessment.status === s ? "is-active" : ""}
+              onClick={() => onStatus(s)}
+            >
+              {statusLabel(s)}
+            </button>
+          ))}
+        </div>
+        {assessment.status === "draft" && (
+          <Button type="button" variant="danger" onClick={() => onDeleteDraft(assessment.id)}>
+            <Trash2 size={16} />
+            Delete draft
+          </Button>
+        )}
+      </Panel>
+
+      <Panel>
+        <div className="hs-section-heading">
+          <div>
+            <p className="hs-kicker">Notes</p>
+            <h2>Writeup</h2>
+          </div>
+        </div>
+        <TextArea
+          value={writeupDraft}
+          onChange={(e) => onWriteup(e.target.value)}
+          placeholder="Main assessment note for the homeowner packet"
+        />
+      </Panel>
+
+      <AiSummaryPanel
+        aiSummary={assessment.aiSummary}
+        localReferences={localReferences}
+        generating={generatingAiSummary}
+        onGenerate={onGenerateAiSummary}
+      />
+
+      {assessment.status === "finished" && (
+        <CheckoutPanel
+          assessment={assessment}
+          onPickPlan={onPickPlan}
+          onPaymentOption={onPaymentOption}
+          onNoteChange={onNoteChange}
+        />
+      )}
+
+      <div className="hs-section-grid">
+        {sectionDefinitions.map((section) => {
+          const filled = Boolean(assessment.sections[section.id]);
+          return (
+            <button
+              key={section.id}
+              type="button"
+              className={`hs-section-tile ${filled ? "is-done" : ""}`}
+              onClick={() => onOpenSection(section)}
+            >
+              <span>{section.emoji}</span>
+              <strong>{section.label}</strong>
+              <small>{filled ? "Saved" : "Open"}</small>
+            </button>
+          );
+        })}
+      </div>
+
+      <Button type="button" wide onClick={onSave}>
+        Save assessment
+      </Button>
+    </section>
+  );
+}

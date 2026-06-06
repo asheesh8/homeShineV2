@@ -47,20 +47,20 @@ export function PipelineScreen({
         </div>
         <div className="hs-page-title-actions">
           {isStevenOnly && (
-            <>
+            <div className="hs-pipeline-tools">
               <Button type="button" variant="secondary" onClick={onTax}>
-                <ReceiptText size={16} />
+                <ReceiptText size={15} />
                 Tax
               </Button>
               <Button type="button" variant="secondary" onClick={onCalendar}>
-                <CalendarDays size={16} />
+                <CalendarDays size={15} />
                 Calendar
               </Button>
               <Button type="button" variant="secondary" onClick={onNewQuote}>
-                <ClipboardList size={16} />
+                <ClipboardList size={15} />
                 New Quote
               </Button>
-            </>
+            </div>
           )}
           <Button type="button" onClick={onNewAssessment}>
             <Plus size={18} />

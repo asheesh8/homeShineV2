@@ -950,11 +950,40 @@ export function fieldReportDocument(assessment: Assessment) {
 
 /* ─── CLIENT PACKET (receipt + contract combined) ──────────────────────── */
 
+type TimelineStage = { label: string; when: string; detail: string };
+
+const PLAN_TIMELINES: Record<string, TimelineStage[]> = {
+  "shine-now": [
+    { when: "Day of Service", label: "Full Exterior Reset", detail: "Our crew arrives and completes a top-to-bottom cleaning: gutters flushed and inspected, siding soft-washed, windows and screens hand-cleaned, walkways and deck treated. You'll receive a post-service summary before we leave." },
+    { when: "Within 48 hours", label: "Completion Report", detail: "HomeSHINE sends a photo summary of completed work along with any observations noted during service — items to monitor, surfaces that may benefit from future treatment, or follow-up recommendations." },
+  ],
+  "protection": [
+    { when: "Day 1", label: "Deep Exterior Clean", detail: "A full reset of every surface: gutters cleared, siding soft-washed, windows cleaned, walkways and deck treated, roof moss addressed. We document the baseline condition of your home so future visits can target what's actually changed." },
+    { when: "Month 12", label: "Annual Maintenance Visit", detail: "A full walkthrough and targeted cleaning of surfaces that have accumulated seasonal buildup. Gutters re-cleared, siding and walkways touched up, windows spot-cleaned. We check against the Day 1 baseline and flag anything that needs extra attention." },
+    { when: "Month 18", label: "Tune-Up &amp; Renewal Check", detail: "A lighter service focused on keeping everything looking sharp into the next season. Gutters flushed, high-traffic surfaces refreshed, and a written renewal recommendation so you know exactly what the next plan period should include." },
+  ],
+  "shine-ready": [
+    { when: "Week 1", label: "Pre-Listing Assessment", detail: "A detailed walk of the property to document curb-appeal priorities. We identify what buyers and photographers will notice first, and scope the work to maximize visual impact within your timeline." },
+    { when: "Week 2", label: "Curb Appeal Reset", detail: "Full exterior cleaning focused on first impressions: siding, windows, walkway, driveway, and any visible roof or gutter issues. Property is left in show-ready condition." },
+    { when: "On Request", label: "Show-Day Touch-Up", detail: "Available before key showings or open houses. A quick refresh of the highest-visibility surfaces so the exterior looks its best on listing day and beyond." },
+  ],
+  "shine-renew": [
+    { when: "Phase 1", label: "Assessment &amp; Restoration Plan", detail: "We walk the full property and document surface conditions in detail — staining, buildup, moss, oxidation, and structural concerns. A written restoration scope is prepared and reviewed with you before any work begins." },
+    { when: "Phase 2", label: "Deep Restoration Service", detail: "Multi-day restoration addressing the most degraded surfaces first: roof treatment, heavy siding buildup, stained hardscape. Specialty solutions are used where standard soft-wash isn't enough." },
+    { when: "Phase 3", label: "Final Renewal &amp; Maintenance Setup", detail: "Completion of remaining surfaces, a full post-service documentation, and setup of a recurring maintenance schedule to protect the restored work. You receive a before-and-after report and a recommended care calendar." },
+  ],
+};
+
 export function clientPacketDocument(assessment: Assessment) {
   const plan = getCheckoutPlan(assessment.checkout?.planId);
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   const invoiceNum = `HS-${assessment.id.slice(-6).toUpperCase()}`;
   const paymentLabel = assessment.checkout?.paymentOption === "deposit-monthly" ? "Deposit + Monthly" : "Standard Payment";
+  const timeline: TimelineStage[] = plan ? (PLAN_TIMELINES[plan.id] ?? []) : [];
+  const ai = assessment.aiSummary;
+  const sources = Array.isArray(ai?.sources) && ai!.sources.length > 0 && typeof ai!.sources[0] === "object"
+    ? (ai!.sources as import("@/lib/simple-field").AiSource[])
+    : [];
 
   const styles = `
     .page { max-width: 720px; margin: 32px auto; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(24,38,56,.12); }
@@ -991,6 +1020,28 @@ export function clientPacketDocument(assessment: Assessment) {
     .includes-dot { width: 17px; height: 17px; border-radius: 50%; background: var(--green-soft); border: 1px solid #c6e6d3; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; font-size: 9px; color: var(--green); font-weight: 800; }
     .legal-text { font-size: 13px; line-height: 1.7; color: var(--ink-2); background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
     .note-text { font-size: 13.5px; line-height: 1.65; color: var(--ink-2); background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 13px 15px; }
+    .ai-summary-box { font-size: 14px; line-height: 1.75; color: var(--ink-2); background: #f0faf4; border: 1px solid #c6e6d3; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+    .next-steps-list { display: grid; gap: 8px; }
+    .next-step-row { display: flex; align-items: flex-start; gap: 10px; }
+    .next-step-num { min-width: 22px; height: 22px; border-radius: 50%; background: var(--green); color: #fff; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .next-step-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+    .sources-grid { display: grid; gap: 10px; }
+    .source-card { border: 1px solid var(--line); border-radius: 10px; padding: 13px 15px; background: #fff; }
+    .source-domain { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--green); margin-bottom: 3px; }
+    .source-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+    .source-quote { font-size: 12.5px; color: var(--ink-2); line-height: 1.6; border-left: 3px solid #c6e6d3; padding-left: 10px; font-style: italic; margin: 0; }
+    .source-url { font-size: 11px; color: var(--muted); margin-top: 6px; word-break: break-all; }
+    .timeline { display: grid; gap: 0; position: relative; }
+    .timeline-item { display: grid; grid-template-columns: 52px 1fr; gap: 0; }
+    .timeline-left { display: flex; flex-direction: column; align-items: center; }
+    .timeline-badge { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #182638, #1d4030); border: 2px solid var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .timeline-badge-num { font-size: 12px; font-weight: 800; color: #fff; }
+    .timeline-connector { width: 2px; flex: 1; min-height: 16px; background: linear-gradient(to bottom, var(--green), #c6e6d3); margin: 3px 0; }
+    .timeline-item:last-child .timeline-connector { display: none; }
+    .timeline-content { padding: 0 0 20px 14px; }
+    .timeline-when { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--green); margin-bottom: 2px; }
+    .timeline-title { font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 5px; line-height: 1.2; }
+    .timeline-detail { font-size: 13px; color: var(--ink-2); line-height: 1.6; }
     .divider { height: 1px; background: var(--line); margin: 4px 0 24px; }
     .sig-block { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .sig-box { border: 1px solid var(--line); border-radius: 12px; padding: 18px 16px; background: #fff; }
@@ -1008,6 +1059,57 @@ export function clientPacketDocument(assessment: Assessment) {
   const includesList = plan?.includes.map((item) =>
     `<div class="includes-item"><div class="includes-dot">✓</div><span>${escapeHtml(item)}</span></div>`
   ).join("") ?? "";
+
+  const timelineHtml = timeline.length > 0 ? `
+    <div class="section">
+      <div class="section-label">Service Timeline</div>
+      <div class="timeline">
+        ${timeline.map((stage, i) => `
+          <div class="timeline-item">
+            <div class="timeline-left">
+              <div class="timeline-badge"><span class="timeline-badge-num">${i + 1}</span></div>
+              <div class="timeline-connector"></div>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-when">${stage.when}</div>
+              <div class="timeline-title">${stage.label}</div>
+              <div class="timeline-detail">${stage.detail}</div>
+            </div>
+          </div>`).join("")}
+      </div>
+    </div>
+    <div class="divider"></div>` : "";
+
+  const aiSummaryHtml = ai ? `
+    <div class="section">
+      <div class="section-label">Assessment Summary</div>
+      <p class="ai-summary-box">${escapeHtml(ai.summary)}</p>
+      ${(ai.nextSteps?.length ?? 0) > 0 ? `
+      <div class="section-label" style="margin-top:14px;">What's Next for Your Home</div>
+      <div class="next-steps-list">
+        ${ai.nextSteps.map((step, i) => `
+          <div class="next-step-row">
+            <div class="next-step-num">${i + 1}</div>
+            <p class="next-step-text">${escapeHtml(step)}</p>
+          </div>`).join("")}
+      </div>` : ""}
+    </div>
+    <div class="divider"></div>` : "";
+
+  const sourcesHtml = sources.length > 0 ? `
+    <div class="section">
+      <div class="section-label">Research &amp; References</div>
+      <div class="sources-grid">
+        ${sources.map((s) => `
+          <div class="source-card">
+            <div class="source-domain">${escapeHtml(s.domain)}</div>
+            <div class="source-title">${escapeHtml(s.title)}</div>
+            <blockquote class="source-quote">${escapeHtml(s.quote)}</blockquote>
+            <div class="source-url">${escapeHtml(s.url)}</div>
+          </div>`).join("")}
+      </div>
+    </div>
+    <div class="divider"></div>` : "";
 
   const body = `
     <div class="page">
@@ -1069,13 +1171,16 @@ export function clientPacketDocument(assessment: Assessment) {
           All exterior surfaces will be treated using appropriate pressure, temperature, and cleaning solutions selected by HomeSHINE based on material type and condition. Scheduling will be coordinated directly with the homeowner prior to each visit. HomeSHINE reserves the right to adjust scope or timing due to weather or property access conditions, with advance notice provided.</p>
         </div>` : ""}
 
+        ${timelineHtml}
+        ${aiSummaryHtml}
+        ${sourcesHtml}
+
         ${assessment.checkout?.contractNote ? `
         <div class="section">
           <div class="section-label">Access &amp; Scheduling Notes</div>
           <p class="note-text">${escapeHtml(assessment.checkout.contractNote)}</p>
-        </div>` : ""}
-
-        <div class="divider"></div>
+        </div>
+        <div class="divider"></div>` : ""}
 
         <div class="section">
           <div class="section-label">Signatures</div>

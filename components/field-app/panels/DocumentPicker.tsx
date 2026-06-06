@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ChevronDown,
   Download,
@@ -129,7 +130,7 @@ export function DocumentPicker({
         <ChevronDown size={14} style={{ color: "var(--muted)", flexShrink: 0, pointerEvents: "none", marginLeft: -24 }} />
       </div>
 
-      {preview && (
+      {preview && createPortal(
         <div className="hs-doc-preview-backdrop" role="dialog" aria-modal="true" aria-labelledby="doc-preview-title">
           <div className="hs-doc-preview-panel">
             <div className="hs-doc-preview-header">
@@ -156,7 +157,7 @@ export function DocumentPicker({
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </>
   );
 }

@@ -27,6 +27,21 @@ function fmt12(time24: string) {
   return `${h12}:${String(m).padStart(2, "0")} ${ampm}`;
 }
 
+function addMinutes(time24: string, minutes: number): string {
+  const [h, m] = time24.split(":").map(Number);
+  const total  = h * 60 + m + minutes;
+  const hh     = Math.floor(total / 60) % 24;
+  const mm     = total % 60;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+function fmtDuration(mins: number): string {
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m === 0 ? `${h} hr` : `${h}.${m === 30 ? "5" : m} hr`;
+}
+
 function fmtDateLong(iso: string) {
   const [y, mo, d] = iso.split("-").map(Number);
   const date = new Date(y, mo - 1, d);
@@ -240,7 +255,15 @@ export function CalendarScreen({
               {/* Booking time */}
               <div className="hs-cal-drawer-time-block">
                 <p className="hs-cal-drawer-time-date">{fmtDateLong(detail.booking!.date)}</p>
-                <p className="hs-cal-drawer-time-time">{fmt12(detail.booking!.time)}</p>
+                <p className="hs-cal-drawer-time-time">
+                  {fmt12(detail.booking!.time)}
+                  {detail.booking?.duration
+                    ? ` → ${fmt12(addMinutes(detail.booking.time, detail.booking.duration))}`
+                    : ""}
+                </p>
+                {detail.booking?.duration && (
+                  <p className="hs-cal-drawer-duration">{fmtDuration(detail.booking.duration)} window</p>
+                )}
                 {detail.booking?.visitLabel && (
                   <p className="hs-cal-drawer-visit-label">{detail.booking.visitLabel}</p>
                 )}

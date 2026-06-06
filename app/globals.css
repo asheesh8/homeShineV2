@@ -2767,3 +2767,12 @@ h2 {
   .hs-cal-job-name { display: none; }
   .hs-cal-screen { padding: 12px 10px 32px; }
 }
+
+/* Duration picker additions */
+.hs-booking-duration-hint { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+.hs-booking-duration-hint strong { color: var(--ink); }
+.hs-time-slot.is-suggested { border-color: var(--green); color: var(--green); }
+.hs-duration-star { font-size: 9px; margin-left: 3px; vertical-align: super; color: var(--green); }
+.hs-time-slot.is-selected .hs-duration-star { color: rgba(255,255,255,0.8); }
+.hs-booking-summary-time { font-size: 17px; font-weight: 700; color: var(--ink); margin: 0 0 3px; }
+.hs-cal-drawer-duration { font-size: 12px; font-weight: 600; color: var(--green); margin: 0 0 4px; }

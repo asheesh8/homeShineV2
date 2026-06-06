@@ -59,6 +59,8 @@ export type BookingData = {
   date: string;
   /** 24-hour time "HH:MM" */
   time: string;
+  /** Job window duration in minutes, e.g. 90, 120, 180 */
+  duration?: number;
   /** Optional note for access / visit details */
   note?: string;
   /** Human label for the visit, e.g. "Full Exterior Clean" */

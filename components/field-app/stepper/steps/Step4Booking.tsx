@@ -38,6 +38,34 @@ const VISIT_LABELS: Record<string, string> = {
   "shine-renew": "Restoration Service",
 };
 
+/* Suggested duration in minutes per plan (used as default hint) */
+const PLAN_DEFAULT_DURATION: Record<string, number> = {
+  "shine-now":   180,  // 3 hr
+  "protection":  240,  // 4 hr
+  "shine-ready": 150,  // 2.5 hr
+  "shine-renew": 300,  // 5 hr
+};
+
+const DURATION_OPTIONS = [
+  { label: "1 hr",   value: 60  },
+  { label: "1.5 hr", value: 90  },
+  { label: "2 hr",   value: 120 },
+  { label: "2.5 hr", value: 150 },
+  { label: "3 hr",   value: 180 },
+  { label: "3.5 hr", value: 210 },
+  { label: "4 hr",   value: 240 },
+  { label: "5 hr",   value: 300 },
+  { label: "6 hr",   value: 360 },
+];
+
+function addMinutes(time24: string, minutes: number): string {
+  const [h, m] = time24.split(":").map(Number);
+  const total  = h * 60 + m + minutes;
+  const hh     = Math.floor(total / 60) % 24;
+  const mm     = total % 60;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
 const MORNING_SLOTS   = ["08:00","09:00","10:00","11:00"];
 const AFTERNOON_SLOTS = ["13:00","14:00","15:00","16:00"];
 
@@ -58,6 +86,7 @@ export function Step4Booking({
 }) {
   const plan = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
   const visitLabel = plan ? (VISIT_LABELS[plan.id] ?? plan.name) : "Service Visit";
+  const suggestedDuration = plan ? (PLAN_DEFAULT_DURATION[plan.id] ?? 180) : 180;
 
   /* calendar state */
   const today = new Date();
@@ -220,6 +249,30 @@ export function Step4Booking({
         </section>
       )}
 
+      {/* Duration picker — shown after time selected */}
+      {selectedDate && booking.time && (
+        <section className="hs-step-section">
+          <p className="hs-step-section-label">Job window</p>
+          <p className="hs-booking-duration-hint">
+            Suggested for {plan?.name ?? "this plan"}: <strong>{DURATION_OPTIONS.find(d => d.value === suggestedDuration)?.label ?? "3 hr"}</strong>
+            {" "}— adjust based on property condition.
+          </p>
+          <div className="hs-time-slots" style={{ flexWrap: "wrap" }}>
+            {DURATION_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                className={`hs-time-slot ${booking.duration === opt.value ? "is-selected" : ""} ${opt.value === suggestedDuration && !booking.duration ? "is-suggested" : ""}`}
+                onClick={() => onUpdate({ duration: opt.value })}
+              >
+                {opt.label}
+                {opt.value === suggestedDuration && <span className="hs-duration-star">★</span>}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Visit note */}
       {selectedDate && booking.time && (
         <section className="hs-step-section">
@@ -241,7 +294,15 @@ export function Step4Booking({
           <CalendarDays size={18} className="hs-booking-summary-icon" />
           <div>
             <p className="hs-booking-summary-label">{visitLabel}</p>
-            <p className="hs-booking-summary-date">{fmtDate(selectedDate)} at {fmt12(booking.time)}</p>
+            <p className="hs-booking-summary-date">
+              {fmtDate(selectedDate)}
+            </p>
+            <p className="hs-booking-summary-time">
+              {fmt12(booking.time)}
+              {booking.duration
+                ? ` → ${fmt12(addMinutes(booking.time, booking.duration))} (${DURATION_OPTIONS.find(d => d.value === booking.duration)?.label})`
+                : ""}
+            </p>
             <p className="hs-booking-summary-client">{client.owner.name} · {client.owner.phone}</p>
           </div>
         </div>

@@ -1033,10 +1033,26 @@ const PLAN_TIMELINES: Record<string, TimelineStage[]> = {
 
 export function clientPacketDocument(assessment: Assessment) {
   const plan = getCheckoutPlan(assessment.checkout?.planId);
+  const co   = assessment.checkout;
   const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   const invoiceNum = `HS-${assessment.id.slice(-6).toUpperCase()}`;
-  const paymentLabel = assessment.checkout?.paymentOption === "deposit-monthly" ? "Deposit + Monthly" : "Standard Payment";
+  const isDepositMonthly = co?.paymentOption === "deposit-monthly";
+  const paymentLabel = isDepositMonthly ? "Deposit + Monthly" : "Pay in Full";
   const timeline: TimelineStage[] = plan ? (PLAN_TIMELINES[plan.id] ?? []) : [];
+
+  /* ── price math — prefer stored amounts, fall back to live calc ── */
+  const listPrice  = plan?.price ?? 0;
+  const discount   = co?.discountAmount ?? 0;
+  const discounted = listPrice - discount;
+  const taxRate    = co?.taxRate     ?? TAX_RATE;
+  const taxAmt     = co?.taxAmount   ?? (discounted * taxRate);
+  const total      = co?.totalAmount ?? (discounted + taxAmt);
+  const taxPct     = Math.round(taxRate * 100);
+
+  /* ── deposit / monthly ── */
+  const storedBreakdown = co?.depositAmount != null && co?.monthlyAmount != null && co?.months != null
+    ? { depositAmount: co.depositAmount, monthlyAmount: co.monthlyAmount, months: co.months }
+    : (plan && isDepositMonthly && plan.deposit != null ? calcDepositMonthly(plan) : null);
   const ai = assessment.aiSummary;
   const sources = Array.isArray(ai?.sources) && ai!.sources.length > 0 && typeof ai!.sources[0] === "object"
     ? (ai!.sources as import("@/lib/simple-field").AiSource[])
@@ -1067,11 +1083,19 @@ export function clientPacketDocument(assessment: Assessment) {
     .line-table td { padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink-2); vertical-align: top; }
     .line-table td:last-child { text-align: right; font-weight: 700; color: var(--ink); }
     .line-table tr.total td { border-top: 2px solid var(--ink); border-bottom: none; padding-top: 13px; font-weight: 700; color: var(--ink); font-size: 15px; }
+    .line-table tr.tax-row td { color: var(--muted); font-size: 13px; }
+    .line-table tr.discount-row td { color: #b45309; font-size: 13.5px; background: #fffbeb; }
+    .line-table tr.subtotal-row td { color: var(--muted); font-size: 13px; }
     .line-name { font-weight: 700; color: var(--ink); margin-bottom: 2px; }
     .line-desc { font-size: 12px; color: var(--muted); }
-    .payment-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 11px 15px; }
-    .payment-row .pay-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
-    .payment-row .pay-val { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .payment-block { background: var(--green-soft); border: 1px solid #c6e6d3; border-radius: 12px; padding: 14px 18px; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .pay-method { display: flex; justify-content: space-between; align-items: center; }
+    .pay-method .pay-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--green); }
+    .pay-method .pay-val { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .pay-schedule { display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #c6e6d3; padding-top: 10px; }
+    .pay-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--ink-2); }
+    .pay-row strong { color: var(--ink); font-weight: 700; }
+    .pay-row.sub { font-size: 12px; color: var(--muted); }
     .includes-list { display: grid; gap: 7px; margin-top: 4px; }
     .includes-item { display: flex; align-items: flex-start; gap: 9px; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
     .includes-dot { width: 17px; height: 17px; border-radius: 50%; background: var(--green-soft); border: 1px solid #c6e6d3; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; font-size: 9px; color: var(--green); font-weight: 800; }
@@ -1194,7 +1218,7 @@ export function clientPacketDocument(assessment: Assessment) {
               <div class="plan-row-label">${escapeHtml(plan.label)}</div>
               <div class="plan-row-name">${escapeHtml(plan.name)}</div>
             </div>
-            <div class="plan-row-price">${money(plan.price)}</div>
+            <div class="plan-row-price">${moneyDecimal(total)}</div>
           </div>
           <table class="line-table">
             <thead><tr><th>Description</th><th>Amount</th></tr></thead>
@@ -1204,16 +1228,44 @@ export function clientPacketDocument(assessment: Assessment) {
                   <div class="line-name">${escapeHtml(plan.name)}</div>
                   <div class="line-desc">${escapeHtml(plan.summary)}</div>
                 </td>
-                <td>${money(plan.price)}</td>
+                <td>${money(listPrice)}</td>
+              </tr>
+              ${discount > 0 ? `
+              <tr class="discount-row">
+                <td><div class="line-name" style="color:#b45309;">Discount${co?.discountNote ? ` — ${escapeHtml(co.discountNote)}` : ""}</div></td>
+                <td style="color:#b45309;">−${money(discount)}</td>
+              </tr>
+              <tr class="subtotal-row">
+                <td style="color:var(--muted);font-size:13px;">Subtotal after discount</td>
+                <td>${money(discounted)}</td>
+              </tr>` : ""}
+              <tr class="tax-row">
+                <td>Tax (${taxPct}%)</td>
+                <td>${moneyDecimal(taxAmt)}</td>
               </tr>
             </tbody>
-            <tfoot><tr class="total"><td>Total</td><td>${money(plan.price)}</td></tr></tfoot>
+            <tfoot><tr class="total"><td>Total</td><td>${moneyDecimal(total)}</td></tr></tfoot>
           </table>
-          <div style="margin-top:10px;">
-            <div class="payment-row">
-              <span class="pay-label">Payment Method</span>
-              <span class="pay-val">${escapeHtml(paymentLabel)}</span>
+          <div class="payment-block">
+            <div class="pay-method">
+              <div class="pay-label">Payment</div>
+              <div class="pay-val">${escapeHtml(paymentLabel)}</div>
             </div>
+            ${storedBreakdown ? `
+            <div class="pay-schedule">
+              <div class="pay-row">
+                <span>Deposit due today</span>
+                <strong>${money(storedBreakdown.depositAmount)}</strong>
+              </div>
+              <div class="pay-row">
+                <span>Monthly payment &times; ${storedBreakdown.months}</span>
+                <strong>${moneyDecimal(storedBreakdown.monthlyAmount)}/mo</strong>
+              </div>
+              <div class="pay-row sub">
+                <span>Remaining balance (${storedBreakdown.months} &times; ${moneyDecimal(storedBreakdown.monthlyAmount)})</span>
+                <span>${moneyDecimal(storedBreakdown.monthlyAmount * storedBreakdown.months)}</span>
+              </div>
+            </div>` : ""}
           </div>
         </div>
         ${includesList ? `

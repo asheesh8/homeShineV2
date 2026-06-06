@@ -38,9 +38,26 @@ export function Step3Review({
       })()
     : null;
 
-  const previewAssessment: Assessment = { ...client, checkout: checkout as CheckoutData };
-
   function openPacket() {
+    // Build a fully-enriched checkout so clientPacketDocument has all the
+    // computed amounts (tax, total, discount, deposit/monthly schedule).
+    const enrichedCheckout: CheckoutData = {
+      planId:        checkout.planId!,
+      planName:      checkout.planName   ?? plan?.name ?? "",
+      planPrice:     checkout.planPrice  ?? plan?.price ?? 0,
+      paymentOption: checkout.paymentOption ?? "full",
+      contractNote:  checkout.contractNote  ?? "",
+      createdAt:     checkout.createdAt     ?? new Date().toISOString(),
+      taxRate,
+      taxAmount,
+      totalAmount:   total,
+      discountAmount: discount > 0 ? discount : undefined,
+      discountNote:   checkout.discountNote,
+      depositAmount:  breakdown?.depositAmount,
+      monthlyAmount:  breakdown?.monthlyAmount,
+      months:         breakdown?.months,
+    };
+    const previewAssessment: Assessment = { ...client, checkout: enrichedCheckout };
     const html = clientPacketDocument(previewAssessment);
     const blob = new Blob([html], { type: "text/html" });
     const url  = URL.createObjectURL(blob);

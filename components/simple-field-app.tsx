@@ -16,6 +16,7 @@ import { useSession } from "@/components/field-app/hooks/useSession";
 import { useStepperFlow } from "@/components/field-app/hooks/useStepperFlow";
 import { getMatches } from "@/components/field-app/utils";
 import { stateOptions, townOptions } from "@/lib/simple-field";
+// (townOptions/stateMatches still used for the owner screen below)
 
 export default function SimpleFieldApp() {
   const { toast, dialog, showToast, showDialog, closeToast, closeDialog } = useNotifications();
@@ -55,10 +56,6 @@ export default function SimpleFieldApp() {
 
   const townMatches = getMatches(ownerDraft.city, townOptions);
   const stateMatches = getMatches(ownerDraft.state, stateOptions);
-
-  // Stepper autocomplete matches are driven by the stepper draft owner fields
-  const stepperTownMatches = getMatches(stepperFlow.draft.owner.city, townOptions);
-  const stepperStateMatches = getMatches(stepperFlow.draft.owner.state, stateOptions);
 
   function openStepper() {
     stepperFlow.reset();
@@ -123,9 +120,6 @@ export default function SimpleFieldApp() {
             onDeleteDraft={askDeleteDraft}
             onWriteup={setWriteupDraft}
             onGenerateAiSummary={generateAiSummary}
-            onPickPlan={pickPlan}
-            onPaymentOption={updatePaymentOption}
-            onNoteChange={updateContractNote}
             onOpenSection={openSection}
             onSave={saveAndReturn}
           />
@@ -135,9 +129,8 @@ export default function SimpleFieldApp() {
           <StepperShell
             key="stepper"
             flow={stepperFlow}
+            assessments={assessments}
             onExit={exitStepper}
-            townMatches={stepperTownMatches}
-            stateMatches={stepperStateMatches}
           />
         )}
 

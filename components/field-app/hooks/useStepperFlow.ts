@@ -2,16 +2,15 @@
 
 import { startTransition, useState } from "react";
 import type { DialogState, ToastState } from "@/components/field-app/types";
-import { createAssessment, updateAssessment } from "@/components/field-app/api";
-import { emptyOwner, makeAssessment, type Assessment, type Owner } from "@/lib/simple-field";
+import { updateAssessment } from "@/components/field-app/api";
+import { type Assessment, type CheckoutData } from "@/lib/simple-field";
 
 export const STEPPER_STEPS = [
-  { label: "Property",     short: "Prop"   },
-  { label: "Observations", short: "Obs"    },
-  { label: "Quote",        short: "Quote"  },
-  { label: "Review",       short: "Review" },
-  { label: "Payment",      short: "Pay"    },
-  { label: "Complete",     short: "Done"   },
+  { label: "Client",   short: "Client" },
+  { label: "Quote",    short: "Quote"  },
+  { label: "Review",   short: "Review" },
+  { label: "Payment",  short: "Pay"    },
+  { label: "Complete", short: "Done"   },
 ] as const;
 
 export type StepperStep = (typeof STEPPER_STEPS)[number];
@@ -24,47 +23,38 @@ type NotifyFns = {
 export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
   const [step, setStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
-  const [savedId, setSavedId] = useState<string | null>(null);
 
-  // Full in-memory assessment draft — updated as the user fills each step
-  const [draft, setDraft] = useState<Assessment>(() => ({
-    ...makeAssessment(),
-    status: "ongoing",
-    owner: { ...emptyOwner },
-  }));
+  // The assessment selected in Step 1 — this is the source of truth for client data
+  const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
 
-  /* ── field updaters ─────────────────────────────────────────────────── */
+  // Checkout draft built up through steps 2-5
+  const [checkoutDraft, setCheckoutDraft] = useState<Partial<CheckoutData>>({});
 
-  function updateOwner<K extends keyof Owner>(field: K, value: Owner[K]) {
-    setDraft((prev) => ({ ...prev, owner: { ...prev.owner, [field]: value } }));
+  /* ── Step 1: client selection ───────────────────────────────────────── */
+
+  function selectClient(assessment: Assessment | null) {
+    setSelectedAssessment(assessment);
   }
 
-  function updateWriteup(value: string) {
-    setDraft((prev) => ({ ...prev, writeup: value }));
-  }
+  /* ── Step 2+: checkout data ─────────────────────────────────────────── */
 
-  // Generic escape hatch for updating sections from later steps
-  function updateSection(sectionId: string, data: Record<string, string | number | boolean>) {
-    setDraft((prev) => ({
-      ...prev,
-      sections: { ...prev.sections, [sectionId]: data },
-    }));
+  function updateCheckout(patch: Partial<CheckoutData>) {
+    setCheckoutDraft((prev) => ({ ...prev, ...patch }));
   }
 
   /* ── persistence ────────────────────────────────────────────────────── */
 
+  // Attach the checkout draft to the selected assessment in Supabase
   async function persist(): Promise<Assessment | null> {
+    if (!selectedAssessment) return null;
     setIsSaving(true);
     try {
-      const toSave = { ...draft, updatedAt: new Date().toISOString() };
-      let saved: Assessment;
-      if (savedId) {
-        saved = await updateAssessment({ ...toSave, id: savedId });
-      } else {
-        saved = await createAssessment(toSave);
-        setSavedId(saved.id);
-        setDraft(saved);
-      }
+      const saved = await updateAssessment({
+        ...selectedAssessment,
+        checkout: checkoutDraft as CheckoutData,
+        updatedAt: new Date().toISOString(),
+      });
+      setSelectedAssessment(saved);
       return saved;
     } catch (err) {
       showDialog({
@@ -79,30 +69,25 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
   }
 
   async function saveDraft() {
+    if (!selectedAssessment) {
+      showToast({ tone: "error", title: "No client selected", description: "Pick a client in Step 1 first." });
+      return;
+    }
     const saved = await persist();
     if (saved) {
-      showToast({ tone: "success", title: "Draft saved", description: "Progress has been saved." });
+      showToast({ tone: "success", title: "Draft saved", description: "Quote progress saved." });
     }
   }
 
   /* ── step validation ────────────────────────────────────────────────── */
 
   function validateStep1(): string[] {
-    const { owner } = draft;
-    return [
-      !owner.name    && "Owner name",
-      !owner.street  && "Street address",
-      !owner.city    && "City / Town",
-      !owner.state   && "State",
-      !owner.phone   && "Phone",
-      !owner.email   && "Email",
-    ].filter(Boolean) as string[];
+    return selectedAssessment ? [] : ["Select a client to continue."];
   }
 
   /* ── navigation ─────────────────────────────────────────────────────── */
 
   async function nextStep() {
-    // Validate the current step before advancing
     let errors: string[] = [];
     if (step === 1) errors = validateStep1();
 
@@ -110,20 +95,17 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
       showDialog({
         tone: "error",
         title: "Complete this step first",
-        body: `Missing:\n\n${errors.join("\n")}`,
+        body: errors.join("\n"),
       });
       return;
     }
 
-    // Always persist on step advance
-    const saved = await persist();
-    if (!saved) return;
-
-    if (step === 1) {
+    // Persist when leaving step 1 (attaches checkout shell to the assessment)
+    if (step === 1 && selectedAssessment) {
       showToast({
         tone: "success",
-        title: "Property info saved",
-        description: `Draft created for ${saved.owner.name}.`,
+        title: "Client selected",
+        description: `Building quote for ${selectedAssessment.owner.name}.`,
       });
     }
 
@@ -140,20 +122,19 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
 
   function reset() {
     setStep(1);
-    setDraft({ ...makeAssessment(), status: "ongoing", owner: { ...emptyOwner } });
-    setSavedId(null);
+    setSelectedAssessment(null);
+    setCheckoutDraft({});
     setIsSaving(false);
   }
 
   return {
     step,
-    draft,
     isSaving,
-    savedId,
+    selectedAssessment,
+    checkoutDraft,
     totalSteps: STEPPER_STEPS.length,
-    updateOwner,
-    updateWriteup,
-    updateSection,
+    selectClient,
+    updateCheckout,
     saveDraft,
     nextStep,
     prevStep,

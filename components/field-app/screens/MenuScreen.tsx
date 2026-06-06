@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { ChevronLeft, ExternalLink, Trash2 } from "lucide-react";
 import { Badge, Button, Panel, TextArea } from "@/components/field-app/ui";
-import { CheckoutPanel } from "@/components/field-app/panels/CheckoutPanel";
-import { CHECKOUT_PLANS, statusLabel, statusTone } from "@/components/field-app/utils";
-import { type AiSource, type Assessment, type CheckoutData, type SectionDefinition, formatOwnerAddress, sectionDefinitions, sectionReferenceMap } from "@/lib/simple-field";
+import { statusLabel, statusTone } from "@/components/field-app/utils";
+import { type AiSource, type Assessment, type SectionDefinition, formatOwnerAddress, sectionDefinitions, sectionReferenceMap } from "@/lib/simple-field";
 
 function getLocalReferenceNotes(assessment: Assessment) {
   return sectionDefinitions
@@ -150,9 +149,6 @@ export function MenuScreen({
   onDeleteDraft,
   onWriteup,
   onGenerateAiSummary,
-  onPickPlan,
-  onPaymentOption,
-  onNoteChange,
   onOpenSection,
   onSave,
 }: {
@@ -164,9 +160,6 @@ export function MenuScreen({
   onDeleteDraft: (id: string) => void;
   onWriteup: (value: string) => void;
   onGenerateAiSummary: () => void;
-  onPickPlan: (plan: (typeof CHECKOUT_PLANS)[number]) => void;
-  onPaymentOption: (paymentOption: CheckoutData["paymentOption"]) => void;
-  onNoteChange: (note: string) => void;
   onOpenSection: (section: SectionDefinition) => void;
   onSave: () => void;
 }) {
@@ -227,15 +220,6 @@ export function MenuScreen({
         generating={generatingAiSummary}
         onGenerate={onGenerateAiSummary}
       />
-
-      {assessment.status === "finished" && (
-        <CheckoutPanel
-          assessment={assessment}
-          onPickPlan={onPickPlan}
-          onPaymentOption={onPaymentOption}
-          onNoteChange={onNoteChange}
-        />
-      )}
 
       <div className="hs-section-grid">
         {sectionDefinitions.map((section) => {

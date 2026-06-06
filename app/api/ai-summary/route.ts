@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 
-import {
-  type Assessment,
-  sectionDefinitions,
-  sectionReferenceMap,
-} from "@/lib/simple-field";
+import { type Assessment, sectionDefinitions } from "@/lib/simple-field";
 
 type ClaudeSuccess = {
   content?: Array<{
@@ -46,23 +42,25 @@ function buildAssessmentSummary(assessment: Assessment) {
   ].join("\n");
 }
 
-function getReferenceNotes(assessment: Assessment) {
-  return sectionDefinitions
-    .filter((section) => assessment.sections[section.id])
-    .flatMap((section) => sectionReferenceMap[section.id] ?? [])
-    .slice(0, 5);
-}
 
-function extractJsonObject(text: string) {
+type ParsedResponse = {
+  summary?: string;
+  nextSteps?: string[];
+  sources?: Array<{
+    title?: string;
+    url?: string;
+    quote?: string;
+    domain?: string;
+  }>;
+};
+
+function extractJsonObject(text: string): ParsedResponse {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start === -1 || end === -1 || end <= start) {
     throw new Error("Claude returned an unexpected response.");
   }
-  return JSON.parse(text.slice(start, end + 1)) as {
-    summary?: string;
-    nextSteps?: string[];
-  };
+  return JSON.parse(text.slice(start, end + 1)) as ParsedResponse;
 }
 
 export async function POST(request: Request) {
@@ -85,13 +83,27 @@ export async function POST(request: Request) {
   }
 
   const prompt = [
-    "You write very short, practical homeowner assessment summaries for an exterior cleaning and maintenance company.",
-    "Use only the information provided.",
-    "Do not mention uncertainty unless the data is clearly missing.",
-    "Do not invent prices, repairs, or safety claims.",
-    'Return only valid JSON with this shape: {"summary":"string","nextSteps":["string","string","string"]}.',
-    "The summary should be 2 to 4 sentences, simple, direct, and impactful.",
-    "Each next step should be a short action item.",
+    "You are an expert exterior home maintenance advisor writing a field assessment summary.",
+    "Use only the information provided. Do not invent prices, repairs, or safety claims.",
+    "",
+    "Return ONLY valid JSON with exactly this shape:",
+    '{"summary":"string","nextSteps":["string"],"sources":[{"title":"string","url":"string","quote":"string","domain":"string"}]}',
+    "",
+    "Rules:",
+    "- summary: 2–4 sentences, plain English, direct and impactful for a homeowner.",
+    "- nextSteps: 2–4 short action items specific to what was found in the assessment.",
+    "- sources: 2–3 real, authoritative articles from trusted home maintenance publishers.",
+    "  Choose sources ONLY from these domains: thisoldhouse.com, familyhandyman.com, bobvila.com,",
+    "  houselogic.com, popularmechanics.com, extension.psu.edu, extension.umn.edu, angi.com,",
+    "  or other reputable .edu extension services or established home improvement publications.",
+    "  Each source must be DIRECTLY relevant to one of the specific issues found in this assessment",
+    "  (e.g. if moss on roof is noted, find an article about roof moss treatment).",
+    "  - title: the actual article headline",
+    "  - url: a real, specific article URL you are confident exists (not a homepage)",
+    "  - quote: a 1–2 sentence excerpt or paraphrase that is directly relevant to this property's issue",
+    "  - domain: just the bare domain like 'thisoldhouse.com'",
+    "  If you cannot find 2–3 genuinely relevant, specific articles you are confident exist, return fewer.",
+    "  Never invent URLs.",
     "",
     buildAssessmentSummary(assessment),
   ].join("\n");
@@ -105,7 +117,7 @@ export async function POST(request: Request) {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 500,
+      max_tokens: 900,
       temperature: 0.3,
       messages: [
         {
@@ -132,6 +144,17 @@ export async function POST(request: Request) {
   const text = payload.content?.find((part) => part.type === "text")?.text ?? "";
   const parsed = extractJsonObject(text);
 
+  const rawSources = Array.isArray(parsed.sources) ? parsed.sources : [];
+  const sources = rawSources
+    .filter((s) => s.title && s.url && s.quote && s.url.startsWith("http"))
+    .map((s) => ({
+      title: String(s.title).trim(),
+      url: String(s.url).trim(),
+      quote: String(s.quote).trim(),
+      domain: s.domain ? String(s.domain).trim() : new URL(String(s.url)).hostname.replace("www.", ""),
+    }))
+    .slice(0, 3);
+
   return NextResponse.json({
     summary:
       parsed.summary?.trim() ||
@@ -139,6 +162,6 @@ export async function POST(request: Request) {
     nextSteps: Array.isArray(parsed.nextSteps)
       ? parsed.nextSteps.filter(Boolean).slice(0, 4)
       : [],
-    sources: getReferenceNotes(assessment),
+    sources,
   });
 }

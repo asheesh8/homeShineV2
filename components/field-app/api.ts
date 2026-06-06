@@ -57,13 +57,13 @@ export async function deleteAssessment(id: string): Promise<void> {
 
 export async function requestAiSummary(
   assessment: Assessment
-): Promise<{ summary: string; nextSteps: string[]; sources: string[] }> {
+): Promise<{ summary: string; nextSteps: string[]; sources: import("@/lib/simple-field").AiSource[] }> {
   const res = await fetch("/api/ai-summary", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ assessment }),
   });
-  const data = (await res.json()) as { summary: string; nextSteps: string[]; sources: string[] } | { error: string };
+  const data = (await res.json()) as { summary: string; nextSteps: string[]; sources: import("@/lib/simple-field").AiSource[] } | { error: string };
   if (!res.ok || "error" in data) throw new Error("error" in data ? data.error : "Could not generate AI summary.");
-  return data as { summary: string; nextSteps: string[]; sources: string[] };
+  return data as { summary: string; nextSteps: string[]; sources: import("@/lib/simple-field").AiSource[] };
 }

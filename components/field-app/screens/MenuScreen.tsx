@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, Trash2 } from "lucide-react";
+import { ChevronLeft, ExternalLink, Trash2 } from "lucide-react";
 import { Badge, Button, Panel, TextArea } from "@/components/field-app/ui";
 import { CheckoutPanel } from "@/components/field-app/panels/CheckoutPanel";
 import { CHECKOUT_PLANS, statusLabel, statusTone } from "@/components/field-app/utils";
-import { type Assessment, type CheckoutData, type SectionDefinition, formatOwnerAddress, sectionDefinitions, sectionReferenceMap } from "@/lib/simple-field";
+import { type AiSource, type Assessment, type CheckoutData, type SectionDefinition, formatOwnerAddress, sectionDefinitions, sectionReferenceMap } from "@/lib/simple-field";
 
 function getLocalReferenceNotes(assessment: Assessment) {
   return sectionDefinitions
@@ -16,6 +16,24 @@ function getLocalReferenceNotes(assessment: Assessment) {
 
 type AiSummaryData = NonNullable<Assessment["aiSummary"]>;
 type AiTab = "summary" | "tips" | "sources";
+
+function SourceCard({ source }: { source: AiSource }) {
+  return (
+    <a
+      href={source.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hs-ai-source-card"
+    >
+      <div className="hs-ai-source-card-top">
+        <span className="hs-ai-source-domain">{source.domain}</span>
+        <ExternalLink size={13} className="hs-ai-source-link-icon" />
+      </div>
+      <p className="hs-ai-source-title">{source.title}</p>
+      <blockquote className="hs-ai-source-quote">&ldquo;{source.quote}&rdquo;</blockquote>
+    </a>
+  );
+}
 
 function AiSummaryPanel({
   aiSummary,
@@ -31,9 +49,12 @@ function AiSummaryPanel({
   const [tab, setTab] = useState<AiTab>("summary");
 
   const hasTips = (aiSummary?.nextSteps?.length ?? 0) > 0;
-  const sources = aiSummary?.sources?.length ? aiSummary.sources : localReferences;
+  const sources = (aiSummary?.sources ?? []) as AiSource[];
   const hasSources = sources.length > 0;
   const hasContent = !!aiSummary;
+
+  // suppress unused-var warning — localReferences kept for legacy compatibility
+  void localReferences;
 
   return (
     <Panel>
@@ -67,7 +88,7 @@ function AiSummaryPanel({
             onClick={() => setTab("tips")}
             disabled={!hasTips}
           >
-            Tips {hasTips ? `(${aiSummary!.nextSteps!.length})` : ""}
+            Tips{hasTips ? ` (${aiSummary!.nextSteps!.length})` : ""}
           </button>
           <button
             type="button"
@@ -75,7 +96,7 @@ function AiSummaryPanel({
             onClick={() => setTab("sources")}
             disabled={!hasSources}
           >
-            Sources {hasSources ? `(${sources.length})` : ""}
+            Sources{hasSources ? ` (${sources.length})` : ""}
           </button>
         </div>
       )}
@@ -100,13 +121,14 @@ function AiSummaryPanel({
 
       {hasContent && tab === "sources" && (
         <div className="hs-ai-sources-list">
-          {sources.map((source, i) => (
-            <div key={source} className="hs-ai-source-row">
-              <span className="hs-ai-source-index">{i + 1}</span>
-              <p>{source}</p>
-            </div>
+          {sources.map((source) => (
+            <SourceCard key={source.url} source={source} />
           ))}
-          {!hasSources && <p className="hs-summary-box">No sources available.</p>}
+          {!hasSources && (
+            <p className="hs-summary-box">
+              No sources yet — regenerate the summary to include article references.
+            </p>
+          )}
         </div>
       )}
     </Panel>

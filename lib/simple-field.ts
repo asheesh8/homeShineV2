@@ -13,10 +13,17 @@ export type Owner = {
 
 export type SectionValue = Record<string, string | number | boolean>;
 
+export type AiSource = {
+  title: string;
+  url: string;
+  quote: string;
+  domain: string;
+};
+
 export type AiSummary = {
   summary: string;
   nextSteps: string[];
-  sources: string[];
+  sources: AiSource[];
   generatedAt: string;
 };
 
@@ -401,9 +408,9 @@ export function sampleAssessments(): Assessment[] {
           "Include north-face siding treatment in the base cleaning scope.",
         ],
         sources: [
-          "Roof: Moss buildup should be addressed with low-pressure roof-safe cleaning.",
-          "Gutters: Free-flowing gutters help reduce water backup around the home.",
-          "Siding: Algae on vinyl siding responds well to soft-wash treatment.",
+          { title: "How to Remove Moss From a Roof", url: "https://www.thisoldhouse.com/roofing/21015071/how-to-remove-moss-from-a-roof", quote: "Low-pressure washing with a roof-safe solution is the safest way to remove moss without damaging shingles.", domain: "thisoldhouse.com" },
+          { title: "How to Clean Gutters", url: "https://www.familyhandyman.com/project/how-to-clean-gutters/", quote: "Keeping gutters clear prevents water from backing up against the fascia and causing rot or foundation issues.", domain: "familyhandyman.com" },
+          { title: "How to Clean Vinyl Siding", url: "https://www.bobvila.com/articles/how-to-clean-vinyl-siding/", quote: "A soft-wash approach with appropriate detergent removes algae and mildew from vinyl without damaging the surface.", domain: "bobvila.com" },
         ],
         generatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
       },
@@ -466,9 +473,9 @@ export function sampleAssessments(): Assessment[] {
           "Set up Month 12 and Month 18 maintenance visits at booking.",
         ],
         sources: [
-          "Roof: Heavy moss on north pitch needs roof-safe treatment — pressure washing would damage shingles.",
-          "Gutters: Overflow points may indicate sagging or blockage beyond surface debris.",
-          "Driveway: Oil staining requires degreaser pre-treatment before surface washing.",
+          { title: "Moss and Algae on Roofs", url: "https://www.thisoldhouse.com/roofing/21015071/how-to-remove-moss-from-a-roof", quote: "Heavy moss on the north pitch should be treated with a roof-safe solution — pressure washing risks shingle damage.", domain: "thisoldhouse.com" },
+          { title: "Gutter Inspection and Repair", url: "https://www.familyhandyman.com/project/how-to-clean-gutters/", quote: "Overflow points often indicate sagging sections or blockage deeper in the run, not just surface debris.", domain: "familyhandyman.com" },
+          { title: "Driveway Cleaning and Stain Removal", url: "https://www.bobvila.com/articles/how-to-clean-a-concrete-driveway/", quote: "Oil stains require a degreaser pre-treatment before surface washing to fully lift the staining.", domain: "bobvila.com" },
         ],
         generatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       },

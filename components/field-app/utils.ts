@@ -93,18 +93,22 @@ export function calcDepositMonthly(plan: CheckoutPlan) {
 
 /**
  * Build the full tax + payment fields to merge into CheckoutData.
+ * Pass a custom taxRate (e.g. from the town lookup) to override the default.
  */
 export function buildCheckoutAmounts(
   plan: CheckoutPlan,
-  paymentOption: CheckoutData["paymentOption"]
+  paymentOption: CheckoutData["paymentOption"],
+  taxRate: number = TAX_RATE
 ): Pick<CheckoutData, "taxRate" | "taxAmount" | "totalAmount" | "depositAmount" | "monthlyAmount" | "months"> {
-  const taxAmount = calcTax(plan.price);
+  const taxAmount = plan.price * taxRate;
   const totalAmount = plan.price + taxAmount;
   if (paymentOption === "deposit-monthly" && plan.deposit != null && plan.months != null) {
-    const { depositAmount, monthlyAmount, months } = calcDepositMonthly(plan);
-    return { taxRate: TAX_RATE, taxAmount, totalAmount, depositAmount, monthlyAmount, months };
+    const deposit = plan.deposit ?? 0;
+    const months = plan.months ?? 12;
+    const monthly = (totalAmount - deposit) / months;
+    return { taxRate, taxAmount, totalAmount, depositAmount: deposit, monthlyAmount: monthly, months };
   }
-  return { taxRate: TAX_RATE, taxAmount, totalAmount };
+  return { taxRate, taxAmount, totalAmount };
 }
 
 export function countDone(assessment: Assessment) {

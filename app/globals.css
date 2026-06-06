@@ -2507,3 +2507,34 @@ h2 {
   padding-top: 5px;
   margin-top: 2px;
 }
+
+/* ── Town tax badge (Step 2) ── */
+.hs-tax-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+}
+.hs-tax-badge-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+}
+.hs-tax-badge-spin {
+  animation: spin 1s linear infinite;
+  color: var(--green);
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.hs-tax-badge-fallback {
+  color: var(--amber);
+  font-size: 11px;
+}

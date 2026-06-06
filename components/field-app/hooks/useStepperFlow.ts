@@ -5,6 +5,7 @@ import type { DialogState, ToastState } from "@/components/field-app/types";
 import { updateAssessment } from "@/components/field-app/api";
 import { type Assessment, type CheckoutData } from "@/lib/simple-field";
 import { buildCheckoutAmounts, getCheckoutPlan } from "@/components/field-app/utils";
+import { fetchTownTaxRate, type TownTaxRate } from "@/lib/tax-rates";
 
 export const STEPPER_STEPS = [
   { label: "Client",   short: "Client" },
@@ -27,13 +28,30 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
   // The assessment selected in Step 1
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
 
+  // Town tax rate resolved from client's city (loaded when client is selected)
+  const [townTax, setTownTax] = useState<TownTaxRate | null>(null);
+  const [taxLoading, setTaxLoading] = useState(false);
+
   // Checkout data built in Step 2
   const [checkoutDraft, setCheckoutDraft] = useState<Partial<CheckoutData>>({});
 
   /* ── Step 1 ──────────────────────────────────────────────────────────── */
 
-  function selectClient(assessment: Assessment | null) {
+  async function selectClient(assessment: Assessment | null) {
     setSelectedAssessment(assessment);
+    setTownTax(null);
+
+    if (assessment?.owner.city) {
+      setTaxLoading(true);
+      try {
+        const rate = await fetchTownTaxRate(assessment.owner.city);
+        setTownTax(rate);
+        // Pre-patch taxRate into the draft so it's ready when plan is selected
+        setCheckoutDraft((prev) => ({ ...prev, taxRate: rate.totalRate }));
+      } finally {
+        setTaxLoading(false);
+      }
+    }
   }
 
   /* ── Step 2 ──────────────────────────────────────────────────────────── */
@@ -88,7 +106,11 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
     }
     const plan = getCheckoutPlan(checkoutDraft.planId);
     const paymentOption = checkoutDraft.paymentOption ?? "full";
-    const amounts = plan ? buildCheckoutAmounts(plan, paymentOption) : { taxRate: 0.06, taxAmount: 0, totalAmount: checkoutDraft.planPrice ?? 0 };
+    // Use town-specific rate if available, otherwise fall back to draft or 6%
+    const effectiveTaxRate = townTax?.totalRate ?? checkoutDraft.taxRate ?? 0.06;
+    const amounts = plan
+      ? buildCheckoutAmounts(plan, paymentOption, effectiveTaxRate)
+      : { taxRate: effectiveTaxRate, taxAmount: 0, totalAmount: checkoutDraft.planPrice ?? 0 };
     const fullCheckout: CheckoutData = {
       planId: checkoutDraft.planId,
       planName: checkoutDraft.planName ?? "",
@@ -116,7 +138,6 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
   /* ── Navigation ──────────────────────────────────────────────────────── */
 
   async function nextStep() {
-    // Last step → mark complete
     if (step === STEPPER_STEPS.length) {
       await completeJob();
       return;
@@ -128,7 +149,6 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
       return;
     }
 
-    // Persist when leaving step 2 (attach quote to assessment)
     if (step === 2) {
       const saved = await persist();
       if (!saved) return;
@@ -158,6 +178,8 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
     setStep(1);
     setSelectedAssessment(null);
     setCheckoutDraft({});
+    setTownTax(null);
+    setTaxLoading(false);
     setIsSaving(false);
     setCompleted(false);
   }
@@ -165,6 +187,8 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
   return {
     step,
     isSaving,
+    taxLoading,
+    townTax,
     completed,
     selectedAssessment,
     checkoutDraft,

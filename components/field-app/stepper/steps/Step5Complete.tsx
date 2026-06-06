@@ -4,13 +4,11 @@ import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/field-app/ui";
 import {
   CHECKOUT_PLANS,
-  calcDepositMonthly,
-  calcTax,
-  calcTotal,
   money,
   moneyDecimal,
   TAX_RATE,
 } from "@/components/field-app/utils";
+import { type TownTaxRate } from "@/lib/tax-rates";
 import { clientPacketDocument, receiptDocument } from "@/lib/field-app-documents";
 import { type Assessment, type CheckoutData, formatOwnerAddress } from "@/lib/simple-field";
 
@@ -24,23 +22,34 @@ function openDoc(html: string) {
 export function Step5Complete({
   client,
   checkout,
+  townTax,
   completed,
 }: {
   client: Assessment;
   checkout: Partial<CheckoutData>;
+  townTax: TownTaxRate | null;
   completed: boolean;
 }) {
   const plan = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
   const isDepositMonthly = checkout.paymentOption === "deposit-monthly";
 
+  /* ── tax math — prefer stored amounts (post-save), fall back to live calc ── */
+  const taxRate   = checkout.taxRate   ?? townTax?.totalRate ?? TAX_RATE;
+  const taxPct    = Math.round(taxRate * 100);
   const subtotal  = plan?.price ?? 0;
-  const taxAmount = calcTax(subtotal);
-  const total     = calcTotal(subtotal);
+  const taxAmount = checkout.taxAmount   ?? subtotal * taxRate;
+  const total     = checkout.totalAmount ?? subtotal + taxAmount;
 
-  const breakdown =
-    plan && isDepositMonthly && plan.deposit != null
-      ? calcDepositMonthly(plan)
-      : null;
+  const breakdown = checkout.depositAmount != null && checkout.monthlyAmount != null && checkout.months != null
+    ? { depositAmount: checkout.depositAmount, monthlyAmount: checkout.monthlyAmount, months: checkout.months }
+    : plan && isDepositMonthly && plan.deposit != null
+    ? (() => {
+        const deposit = plan.deposit ?? 0;
+        const months  = plan.months ?? 12;
+        const monthly = (total - deposit) / months;
+        return { depositAmount: deposit, monthlyAmount: monthly, months };
+      })()
+    : null;
 
   const fullCheckout: CheckoutData = {
     planId: checkout.planId!,
@@ -49,12 +58,12 @@ export function Step5Complete({
     paymentOption: checkout.paymentOption ?? "full",
     contractNote: checkout.contractNote ?? "",
     createdAt: checkout.createdAt ?? new Date().toISOString(),
-    taxRate: checkout.taxRate ?? TAX_RATE,
-    taxAmount: checkout.taxAmount ?? taxAmount,
-    totalAmount: checkout.totalAmount ?? total,
-    depositAmount: checkout.depositAmount,
-    monthlyAmount: checkout.monthlyAmount,
-    months: checkout.months,
+    taxRate,
+    taxAmount,
+    totalAmount: total,
+    depositAmount: breakdown?.depositAmount,
+    monthlyAmount: breakdown?.monthlyAmount,
+    months: breakdown?.months,
   };
 
   const finalAssessment: Assessment = {
@@ -110,7 +119,7 @@ export function Step5Complete({
         </p>
       </div>
 
-      {/* Final job summary */}
+      {/* Job summary */}
       <section className="hs-step-section">
         <p className="hs-step-section-label">Job summary</p>
         <div className="hs-review-row">
@@ -137,7 +146,7 @@ export function Step5Complete({
         </div>
       </section>
 
-      {/* Pricing breakdown */}
+      {/* Pricing */}
       {plan && (
         <section className="hs-step-section">
           <p className="hs-step-section-label">Pricing</p>
@@ -146,7 +155,12 @@ export function Step5Complete({
             <strong>{money(subtotal)}</strong>
           </div>
           <div className="hs-review-row">
-            <span>Tax ({Math.round(TAX_RATE * 100)}%)</span>
+            <span>
+              Tax ({taxPct}%
+              {townTax?.localRate
+                ? ` · ${client.owner.city} local option`
+                : " · VT state"})
+            </span>
             <strong>{moneyDecimal(taxAmount)}</strong>
           </div>
           <div className="hs-review-row" style={{ borderTop: "2px solid var(--line)", marginTop: 4 }}>

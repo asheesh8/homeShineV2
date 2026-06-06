@@ -1,25 +1,27 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { FieldLabel, TextArea } from "@/components/field-app/ui";
 import {
   CHECKOUT_PLANS,
   calcDepositMonthly,
-  calcTax,
-  calcTotal,
   money,
   moneyDecimal,
-  TAX_RATE,
 } from "@/components/field-app/utils";
+import { describeTaxRate, type TownTaxRate } from "@/lib/tax-rates";
 import { type Assessment, type CheckoutData, formatOwnerAddress } from "@/lib/simple-field";
 
 export function Step2Quote({
   client,
   checkout,
+  townTax,
+  taxLoading,
   onUpdate,
 }: {
   client: Assessment;
   checkout: Partial<CheckoutData>;
+  townTax: TownTaxRate | null;
+  taxLoading: boolean;
   onUpdate: (patch: Partial<CheckoutData>) => void;
 }) {
   const selectedPlan = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
@@ -38,15 +40,22 @@ export function Step2Quote({
     });
   }
 
-  /* ── Price math ── */
+  /* ── Tax math using town-specific rate ── */
+  const taxRate   = townTax?.totalRate ?? checkout.taxRate ?? 0.06;
   const subtotal  = selectedPlan?.price ?? 0;
-  const taxAmount = calcTax(subtotal);
-  const total     = calcTotal(subtotal);
+  const taxAmount = subtotal * taxRate;
+  const total     = subtotal + taxAmount;
+  const taxPct    = Math.round(taxRate * 100);
 
   /* ── Deposit / monthly breakdown ── */
   const breakdown =
     selectedPlan && isDepositMonthly && selectedPlan.deposit != null
-      ? calcDepositMonthly(selectedPlan)
+      ? (() => {
+          const deposit = selectedPlan.deposit ?? 0;
+          const months  = selectedPlan.months ?? 12;
+          const monthly = (total - deposit) / months;
+          return { depositAmount: deposit, monthlyAmount: monthly, months };
+        })()
       : null;
 
   return (
@@ -66,6 +75,21 @@ export function Step2Quote({
           <span>{formatOwnerAddress(client.owner)}</span>
         </div>
         <span>{client.owner.phone}</span>
+      </div>
+
+      {/* Town tax badge */}
+      <div className="hs-tax-badge">
+        {taxLoading ? (
+          <><Loader2 size={12} className="hs-tax-badge-spin" /> Looking up {client.owner.city} tax rate…</>
+        ) : townTax ? (
+          <>
+            <span className="hs-tax-badge-dot" />
+            {client.owner.city}: {describeTaxRate(townTax)}
+            {!townTax.found && <span className="hs-tax-badge-fallback"> (using VT default)</span>}
+          </>
+        ) : (
+          <><span className="hs-tax-badge-dot" /> Vermont state tax: 6%</>
+        )}
       </div>
 
       {/* Plan cards */}
@@ -111,7 +135,7 @@ export function Step2Quote({
         </div>
       </section>
 
-      {/* Payment option — shown whenever a plan is selected */}
+      {/* Payment option */}
       {selectedPlan && (
         <section className="hs-step-section">
           <p className="hs-step-section-label">Payment option</p>
@@ -134,7 +158,7 @@ export function Step2Quote({
             )}
           </div>
 
-          {/* Deposit + monthly breakdown */}
+          {/* Deposit breakdown */}
           {breakdown && (
             <div className="hs-payment-breakdown">
               <div className="hs-payment-breakdown-row">
@@ -154,7 +178,7 @@ export function Step2Quote({
         </section>
       )}
 
-      {/* Access / scheduling notes */}
+      {/* Access notes */}
       <section className="hs-step-section">
         <FieldLabel>Access &amp; scheduling notes</FieldLabel>
         <TextArea
@@ -165,7 +189,7 @@ export function Step2Quote({
         />
       </section>
 
-      {/* Price total with tax */}
+      {/* Price total with town-specific tax */}
       {selectedPlan && (
         <div className="hs-quote-total-box">
           <div className="hs-quote-total-line">
@@ -173,7 +197,10 @@ export function Step2Quote({
             <span>{money(subtotal)}</span>
           </div>
           <div className="hs-quote-total-line">
-            <span>Tax ({Math.round(TAX_RATE * 100)}%)</span>
+            <span>
+              Tax ({taxPct}%
+              {townTax?.localRate ? ` · ${client.owner.city} local option` : " · VT state"})
+            </span>
             <span>{moneyDecimal(taxAmount)}</span>
           </div>
           <div className="hs-quote-total-line hs-quote-total-line--total">

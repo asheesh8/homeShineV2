@@ -28,6 +28,8 @@ export function StepperShell({
     completed,
     selectedAssessment,
     checkoutDraft,
+    townTax,
+    taxLoading,
     selectClient,
     updateCheckout,
     saveDraft,
@@ -100,6 +102,8 @@ export function StepperShell({
             <Step2Quote
               client={selectedAssessment}
               checkout={checkoutDraft}
+              townTax={townTax}
+              taxLoading={taxLoading}
               onUpdate={updateCheckout}
             />
           )}
@@ -108,6 +112,7 @@ export function StepperShell({
             <Step3Review
               client={selectedAssessment}
               checkout={checkoutDraft}
+              townTax={townTax}
             />
           )}
 
@@ -123,6 +128,7 @@ export function StepperShell({
             <Step5Complete
               client={selectedAssessment}
               checkout={checkoutDraft}
+              townTax={townTax}
               completed={completed}
             />
           )}

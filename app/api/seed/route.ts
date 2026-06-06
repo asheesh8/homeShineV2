@@ -63,7 +63,8 @@ const SAMPLE_ASSESSMENTS: Assessment[] = [
         notes: "Light algae on north face. Rest looks clean.",
       },
       walkway: {
-        size: "40ft x 4ft",
+        length: 40,
+        width: 4,
         color: "Gray",
         material: "Bluestone",
         condition: "fair",
@@ -163,7 +164,8 @@ const SAMPLE_ASSESSMENTS: Assessment[] = [
         notes: "Siding itself is in good shape. Mostly just needs washing.",
       },
       driveway: {
-        size: "60ft x 20ft",
+        length: 60,
+        width: 20,
         color: "Gray",
         material: "Bluestone",
         condition: "fair",

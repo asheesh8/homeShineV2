@@ -34,7 +34,7 @@ export function SectionScreen({
         <h1>{section.label}</h1>
         <div className="hs-form-grid">
           {section.fields.map((field) => (
-            <div key={field.key}>
+            <div key={field.kind === "dimension" ? `${field.lengthKey}-${field.widthKey}` : field.key}>
               <FieldLabel>{prettyLabel(field)}</FieldLabel>
 
               {(field.kind === "text" || field.kind === "number") && (
@@ -85,6 +85,31 @@ export function SectionScreen({
                   value={String(sectionDraft[field.key] ?? "")}
                   onChange={(e) => set(field.key, e.target.value)}
                 />
+              )}
+
+              {field.kind === "dimension" && (
+                <div className="hs-two-field-grid">
+                  <div>
+                    <FieldLabel>Length (ft)</FieldLabel>
+                    <TextInput
+                      type="number"
+                      aria-label="Length"
+                      placeholder="Length"
+                      value={sectionDraft[field.lengthKey] === undefined ? "" : String(sectionDraft[field.lengthKey])}
+                      onChange={(e) => set(field.lengthKey, e.target.value ? Number(e.target.value) : 0)}
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel>Width (ft)</FieldLabel>
+                    <TextInput
+                      type="number"
+                      aria-label="Width"
+                      placeholder="Width"
+                      value={sectionDraft[field.widthKey] === undefined ? "" : String(sectionDraft[field.widthKey])}
+                      onChange={(e) => set(field.widthKey, e.target.value ? Number(e.target.value) : 0)}
+                    />
+                  </div>
+                </div>
               )}
             </div>
           ))}

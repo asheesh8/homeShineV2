@@ -20,6 +20,12 @@ function buildAssessmentSummary(assessment: Assessment) {
 
       const details = section.fields
         .map((field) => {
+          if (field.kind === "dimension") {
+            const l = values[field.lengthKey];
+            const w = values[field.widthKey];
+            if (!l && !w) return "";
+            return `${field.label}: ${l ?? "?"}ft x ${w ?? "?"}ft`;
+          }
           const value = values[field.key];
           if (value === undefined || value === null || value === "") return "";
           return `${field.label}: ${typeof value === "boolean" ? (value ? "Yes" : "No") : String(value)}`;

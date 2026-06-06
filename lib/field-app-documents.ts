@@ -119,6 +119,12 @@ export function notesDocument(assessment: Assessment) {
       const values = assessment.sections[sec.id] ?? {};
       const rows = sec.fields
         .map((field) => {
+          if (field.kind === "dimension") {
+            const l = values[field.lengthKey];
+            const w = values[field.widthKey];
+            if (!l && !w) return "";
+            return `<div class="field-row"><span class="field-key">${escapeHtml(prettyLabel(field))}</span><span class="field-val">${l ?? "?"}ft × ${w ?? "?"}ft</span></div>`;
+          }
           const value = renderValue(field, values[field.key]);
           if (!value) return "";
           return `<div class="field-row"><span class="field-key">${escapeHtml(prettyLabel(field))}</span><span class="field-val">${value}</span></div>`;
@@ -889,6 +895,12 @@ export function fieldReportDocument(assessment: Assessment) {
       const values = assessment.sections[sec.id] ?? {};
       const rows = sec.fields
         .map((field) => {
+          if (field.kind === "dimension") {
+            const l = values[field.lengthKey];
+            const w = values[field.widthKey];
+            if (!l && !w) return "";
+            return `<div class="field-row"><span class="field-key">${escapeHtml(prettyLabel(field))}</span><span class="field-val">${l ?? "?"}ft × ${w ?? "?"}ft</span></div>`;
+          }
           const value = renderValue(field, values[field.key]);
           if (!value) return "";
           return `<div class="field-row"><span class="field-key">${escapeHtml(prettyLabel(field))}</span><span class="field-val">${value}</span></div>`;

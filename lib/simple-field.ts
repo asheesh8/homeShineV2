@@ -96,12 +96,21 @@ export type NotesField = {
   placeholder?: string;
 };
 
+export type DimensionField = {
+  kind: "dimension";
+  lengthKey: string;
+  widthKey: string;
+  label: string;
+  emoji?: string;
+};
+
 export type FieldDefinition =
   | OptionField
   | TextField
   | ToggleField
   | ConditionField
-  | NotesField;
+  | NotesField
+  | DimensionField;
 
 export type SectionDefinition = {
   id: string;
@@ -246,7 +255,7 @@ export const sectionDefinitions: SectionDefinition[] = [
     label: "Walkway",
     emoji: "\u{1FAA8}",
     fields: [
-      { kind: "text", key: "size", label: "Length & width", emoji: "\u{1F4CF}", placeholder: "Length & width" },
+      { kind: "dimension", lengthKey: "length", widthKey: "width", label: "Dimensions", emoji: "\u{1F4CF}" },
       { kind: "text", key: "color", label: "Color", emoji: "\u{1F3A8}", placeholder: "Color" },
       { kind: "select", key: "material", label: "Material", emoji: "\u{1FAA8}", options: ["Bluestone", "Brick", "Other"] },
       { kind: "condition", key: "condition", label: "Condition status", emoji: "\u{1F4CB}" },
@@ -258,7 +267,7 @@ export const sectionDefinitions: SectionDefinition[] = [
     label: "Driveway",
     emoji: "\u{1F697}",
     fields: [
-      { kind: "text", key: "size", label: "Length & width", emoji: "\u{1F4CF}", placeholder: "Length & width" },
+      { kind: "dimension", lengthKey: "length", widthKey: "width", label: "Dimensions", emoji: "\u{1F4CF}" },
       { kind: "text", key: "color", label: "Color", emoji: "\u{1F3A8}", placeholder: "Color" },
       { kind: "select", key: "material", label: "Material", emoji: "\u{1F6E3}", options: ["Bluestone", "Brick", "Other"] },
       { kind: "condition", key: "condition", label: "Condition status", emoji: "\u{1F4CB}" },
@@ -270,7 +279,7 @@ export const sectionDefinitions: SectionDefinition[] = [
     label: "Deck",
     emoji: "\u{1FAB5}",
     fields: [
-      { kind: "text", key: "size", label: "Length & width", emoji: "\u{1F4CF}", placeholder: "Length & width" },
+      { kind: "dimension", lengthKey: "length", widthKey: "width", label: "Dimensions", emoji: "\u{1F4CF}" },
       { kind: "text", key: "color", label: "Color", emoji: "\u{1F3A8}", placeholder: "Color" },
       { kind: "select", key: "material", label: "Material", emoji: "\u{1FAB5}", options: ["Wood", "Trex", "Other"] },
       { kind: "condition", key: "condition", label: "Condition status", emoji: "\u{1F4CB}" },
@@ -440,7 +449,8 @@ export function sampleAssessments(): Assessment[] {
           notes: "Light algae on north face.",
         },
         walkway: {
-          size: "40ft x 4ft",
+          length: 40,
+          width: 4,
           color: "Gray",
           material: "Bluestone",
           condition: "fair",
@@ -533,7 +543,8 @@ export function sampleAssessments(): Assessment[] {
           notes: "Good shape overall, just needs washing.",
         },
         driveway: {
-          size: "60ft x 20ft",
+          length: 60,
+          width: 20,
           color: "Gray",
           material: "Bluestone",
           condition: "fair",

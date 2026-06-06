@@ -48,6 +48,10 @@ export type CheckoutData = {
   monthlyAmount?: number;
   /** Number of monthly installments — only set when paymentOption === "deposit-monthly" */
   months?: number;
+  /** Dollar amount of discount applied before tax (optional) */
+  discountAmount?: number;
+  /** Reason for discount, e.g. "Customer satisfaction" (optional) */
+  discountNote?: string;
 };
 
 export type Assessment = {

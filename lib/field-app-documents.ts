@@ -168,10 +168,12 @@ export function receiptDocument(assessment: Assessment) {
   const paymentLabel = isDepositMonthly ? "Deposit + Monthly" : "Pay in Full";
 
   /* ── price math — prefer stored amounts, fall back to live calc ── */
-  const subtotal  = plan?.price ?? 0;
-  const taxAmt    = co?.taxAmount   ?? calcTax(subtotal);
-  const taxRate   = co?.taxRate     ?? TAX_RATE;
-  const total     = co?.totalAmount ?? calcTotal(subtotal);
+  const listPrice  = plan?.price ?? 0;
+  const discount   = co?.discountAmount ?? 0;
+  const discounted = listPrice - discount;
+  const taxRate    = co?.taxRate     ?? TAX_RATE;
+  const taxAmt     = co?.taxAmount   ?? (discounted * taxRate);
+  const total      = co?.totalAmount ?? (discounted + taxAmt);
 
   /* ── deposit / monthly ── */
   const storedBreakdown = co?.depositAmount != null && co?.monthlyAmount != null && co?.months != null
@@ -199,6 +201,8 @@ export function receiptDocument(assessment: Assessment) {
     .line-table td { padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--ink-2); vertical-align: top; }
     .line-table td:last-child { text-align: right; font-weight: 600; color: var(--ink); }
     .line-table tr.tax-row td { color: var(--muted); font-size: 13px; }
+    .line-table tr.discount-row td { color: #b45309; font-size: 13.5px; background: #fffbeb; }
+    .line-table tr.subtotal-row td { color: var(--muted); font-size: 13px; }
     .line-table tr.total-row td { border-top: 2px solid var(--ink); border-bottom: none; padding-top: 12px; font-weight: 800; color: var(--ink); font-size: 17px; }
     .line-name { font-weight: 700; color: var(--ink); margin-bottom: 2px; }
     .line-desc { font-size: 12.5px; color: var(--muted); }
@@ -261,8 +265,19 @@ export function receiptDocument(assessment: Assessment) {
                   <div class="line-name">${escapeHtml(plan.name)}</div>
                   <div class="line-desc">${escapeHtml(plan.label)} &middot; ${escapeHtml(plan.summary)}</div>
                 </td>
-                <td>${money(subtotal)}</td>
+                <td>${money(listPrice)}</td>
               </tr>
+              ${discount > 0 ? `
+              <tr class="discount-row">
+                <td>
+                  <div class="line-name" style="color:#b45309;">Discount${co?.discountNote ? ` — ${escapeHtml(co.discountNote)}` : ""}</div>
+                </td>
+                <td style="color:#b45309;">−${money(discount)}</td>
+              </tr>
+              <tr class="subtotal-row">
+                <td style="color:var(--muted);font-size:13px;">Subtotal after discount</td>
+                <td>${money(discounted)}</td>
+              </tr>` : ""}
               <tr class="tax-row">
                 <td>Tax (${Math.round(taxRate * 100)}%)</td>
                 <td>${moneyDecimal(taxAmt)}</td>

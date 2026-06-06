@@ -107,9 +107,10 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
     const plan = getCheckoutPlan(checkoutDraft.planId);
     const paymentOption = checkoutDraft.paymentOption ?? "full";
     // Use town-specific rate if available, otherwise fall back to draft or 6%
-    const effectiveTaxRate = townTax?.totalRate ?? checkoutDraft.taxRate ?? 0.06;
+    const effectiveTaxRate   = townTax?.totalRate ?? checkoutDraft.taxRate ?? 0.06;
+    const discountAmount = checkoutDraft.discountAmount ?? 0;
     const amounts = plan
-      ? buildCheckoutAmounts(plan, paymentOption, effectiveTaxRate)
+      ? buildCheckoutAmounts(plan, paymentOption, effectiveTaxRate, discountAmount)
       : { taxRate: effectiveTaxRate, taxAmount: 0, totalAmount: checkoutDraft.planPrice ?? 0 };
     const fullCheckout: CheckoutData = {
       planId: checkoutDraft.planId,
@@ -118,6 +119,8 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
       paymentOption,
       contractNote: checkoutDraft.contractNote ?? "",
       createdAt: checkoutDraft.createdAt ?? new Date().toISOString(),
+      discountAmount: discountAmount > 0 ? discountAmount : undefined,
+      discountNote: checkoutDraft.discountNote || undefined,
       ...amounts,
     };
     const saved = await persist({ status: "finished", checkout: fullCheckout });

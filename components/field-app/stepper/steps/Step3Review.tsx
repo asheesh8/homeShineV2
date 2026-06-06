@@ -2,11 +2,7 @@
 
 import { FileText, Mail } from "lucide-react";
 import { Button } from "@/components/field-app/ui";
-import {
-  CHECKOUT_PLANS,
-  money,
-  moneyDecimal,
-} from "@/components/field-app/utils";
+import { CHECKOUT_PLANS, money, moneyDecimal } from "@/components/field-app/utils";
 import { describeTaxRate, type TownTaxRate } from "@/lib/tax-rates";
 import { clientPacketDocument } from "@/lib/field-app-documents";
 import { type Assessment, type CheckoutData, formatOwnerAddress } from "@/lib/simple-field";
@@ -20,51 +16,52 @@ export function Step3Review({
   checkout: Partial<CheckoutData>;
   townTax: TownTaxRate | null;
 }) {
-  const plan = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
+  const plan             = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
   const isDepositMonthly = checkout.paymentOption === "deposit-monthly";
-  const paymentLabel = isDepositMonthly ? "Deposit + monthly" : "Pay in full";
+  const paymentLabel     = isDepositMonthly ? "Deposit + monthly" : "Pay in full";
 
-  /* ── tax math ── */
-  const taxRate   = townTax?.totalRate ?? checkout.taxRate ?? 0.06;
-  const taxPct    = Math.round(taxRate * 100);
-  const subtotal  = plan?.price ?? 0;
-  const taxAmount = subtotal * taxRate;
-  const total     = subtotal + taxAmount;
+  /* ── price math ── */
+  const taxRate    = townTax?.totalRate ?? checkout.taxRate ?? 0.06;
+  const taxPct     = Math.round(taxRate * 100);
+  const subtotal   = plan?.price ?? 0;
+  const discount   = Math.min(checkout.discountAmount ?? 0, subtotal);
+  const discounted = subtotal - discount;
+  const taxAmount  = discounted * taxRate;
+  const total      = discounted + taxAmount;
 
-  /* ── deposit/monthly breakdown ── */
   const breakdown = plan && isDepositMonthly && plan.deposit != null
     ? (() => {
-        const deposit = plan.deposit ?? 0;
-        const months  = plan.months ?? 12;
-        const monthly = (total - deposit) / months;
-        return { depositAmount: deposit, monthlyAmount: monthly, months };
+        const dep     = plan.deposit ?? 0;
+        const months  = plan.months  ?? 12;
+        const monthly = (total - dep) / months;
+        return { depositAmount: dep, monthlyAmount: monthly, months };
       })()
     : null;
 
-  const previewAssessment: Assessment = {
-    ...client,
-    checkout: checkout as CheckoutData,
-  };
+  const previewAssessment: Assessment = { ...client, checkout: checkout as CheckoutData };
 
   function openPacket() {
     const html = clientPacketDocument(previewAssessment);
     const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
+    const url  = URL.createObjectURL(blob);
     window.open(url, "_blank");
     setTimeout(() => URL.revokeObjectURL(url), 8000);
   }
 
   function emailClient() {
-    const firstName = client.owner.name.split(" ")[0];
-    const subject = encodeURIComponent(`HomeSHINE Quote — ${client.owner.name}`);
+    const firstName  = client.owner.name.split(" ")[0];
+    const subject    = encodeURIComponent(`HomeSHINE Quote — ${client.owner.name}`);
+    const taxDesc    = townTax?.localRate
+      ? `${taxPct}% (${client.owner.city} local option)`
+      : `${taxPct}% VT state`;
+    const discountLine = discount > 0
+      ? `  Discount${checkout.discountNote ? ` (${checkout.discountNote})` : ""}: -${money(discount)}\n`
+      : "";
     const paymentLine = breakdown
       ? `  Deposit today: ${money(breakdown.depositAmount)}\n  Then ${breakdown.months} monthly payments of ${moneyDecimal(breakdown.monthlyAmount)}/mo`
       : `  Total: ${moneyDecimal(total)} (pay in full)`;
-    const taxDesc = townTax?.localRate
-      ? `${taxPct}% (${client.owner.city} local option)`
-      : `${taxPct}% VT state`;
     const body = encodeURIComponent(
-      `Hi ${firstName},\n\nThank you for letting us assess your property at ${formatOwnerAddress(client.owner)}.\n\nHere's your service quote:\n\n  Plan: ${plan?.name ?? "To be confirmed"}\n  Subtotal: ${money(subtotal)}\n  Tax (${taxDesc}): ${moneyDecimal(taxAmount)}\n${paymentLine}\n\nI'll follow up shortly with the full client packet and next steps.\n\nBest,\nSteven Maestas\nHomeSHINE\n(802) 555-0100`
+      `Hi ${firstName},\n\nThank you for letting us assess your property at ${formatOwnerAddress(client.owner)}.\n\nHere's your service quote:\n\n  Plan: ${plan?.name ?? "To be confirmed"}\n  List price: ${money(subtotal)}\n${discountLine}  Tax (${taxDesc}): ${moneyDecimal(taxAmount)}\n${paymentLine}\n\nI'll follow up shortly with the full client packet and next steps.\n\nBest,\nSteven Maestas\nHomeSHINE\n(802) 555-0100`
     );
     window.open(`mailto:${client.owner.email}?subject=${subject}&body=${body}`);
   }
@@ -75,8 +72,7 @@ export function Step3Review({
         <span className="hs-step-eyebrow">Step 3 of 5</span>
         <h2>Review &amp; send</h2>
         <p className="hs-step-description">
-          Review the quote, preview the full client packet, and send it to{" "}
-          {client.owner.name}.
+          Review the quote, preview the full client packet, and send it to {client.owner.name}.
         </p>
       </div>
 
@@ -87,12 +83,19 @@ export function Step3Review({
             <p className="hs-review-plan-eyebrow">{plan.label}</p>
             <p className="hs-review-plan-name">{plan.name}</p>
             <p className="hs-review-plan-payment">{paymentLabel}</p>
+            {discount > 0 && (
+              <p className="hs-review-plan-discount-chip">
+                −{money(discount)} discount applied
+              </p>
+            )}
           </div>
           <div style={{ textAlign: "right" }}>
+            {discount > 0 && (
+              <p className="hs-review-plan-original">{money(subtotal)}</p>
+            )}
             <p className="hs-review-plan-price">{moneyDecimal(total)}</p>
             <p className="hs-review-plan-tax">
-              incl. {taxPct}% tax
-              {townTax?.localRate ? ` · ${client.owner.city}` : ""}
+              incl. {taxPct}% tax{townTax?.localRate ? ` · ${client.owner.city}` : ""}
             </p>
           </div>
         </div>
@@ -105,22 +108,10 @@ export function Step3Review({
       {/* Client details */}
       <section className="hs-step-section">
         <p className="hs-step-section-label">Client</p>
-        <div className="hs-review-row">
-          <span>Name</span>
-          <strong>{client.owner.name}</strong>
-        </div>
-        <div className="hs-review-row">
-          <span>Address</span>
-          <strong>{formatOwnerAddress(client.owner)}</strong>
-        </div>
-        <div className="hs-review-row">
-          <span>Phone</span>
-          <strong>{client.owner.phone}</strong>
-        </div>
-        <div className="hs-review-row">
-          <span>Email</span>
-          <strong>{client.owner.email}</strong>
-        </div>
+        <div className="hs-review-row"><span>Name</span><strong>{client.owner.name}</strong></div>
+        <div className="hs-review-row"><span>Address</span><strong>{formatOwnerAddress(client.owner)}</strong></div>
+        <div className="hs-review-row"><span>Phone</span><strong>{client.owner.phone}</strong></div>
+        <div className="hs-review-row"><span>Email</span><strong>{client.owner.email}</strong></div>
       </section>
 
       {/* Pricing breakdown */}
@@ -128,14 +119,26 @@ export function Step3Review({
         <section className="hs-step-section">
           <p className="hs-step-section-label">Pricing</p>
           <div className="hs-review-row">
-            <span>Subtotal</span>
+            <span>List price</span>
             <strong>{money(subtotal)}</strong>
           </div>
+          {discount > 0 && (
+            <div className="hs-review-row hs-review-row--discount">
+              <span>
+                Discount
+                {checkout.discountNote ? ` · ${checkout.discountNote}` : ""}
+              </span>
+              <strong>−{money(discount)}</strong>
+            </div>
+          )}
+          {discount > 0 && (
+            <div className="hs-review-row">
+              <span>Subtotal after discount</span>
+              <strong>{money(discounted)}</strong>
+            </div>
+          )}
           <div className="hs-review-row">
-            <span>
-              Tax ({taxPct}%
-              {townTax ? ` · ${describeTaxRate(townTax)}` : ""})
-            </span>
+            <span>Tax ({taxPct}%{townTax ? ` · ${describeTaxRate(townTax)}` : ""})</span>
             <strong>{moneyDecimal(taxAmount)}</strong>
           </div>
           <div className="hs-review-row" style={{ borderTop: "2px solid var(--line)", marginTop: 4 }}>
@@ -184,20 +187,16 @@ export function Step3Review({
       {checkout.contractNote && (
         <section className="hs-step-section">
           <p className="hs-step-section-label">Access &amp; scheduling notes</p>
-          <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.65 }}>
-            {checkout.contractNote}
-          </p>
+          <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.65 }}>{checkout.contractNote}</p>
         </section>
       )}
 
       <div className="hs-review-actions">
         <Button type="button" variant="secondary" onClick={openPacket}>
-          <FileText size={16} />
-          Preview client packet
+          <FileText size={16} /> Preview client packet
         </Button>
         <Button type="button" variant="secondary" onClick={emailClient}>
-          <Mail size={16} />
-          Email client
+          <Mail size={16} /> Email client
         </Button>
       </div>
 

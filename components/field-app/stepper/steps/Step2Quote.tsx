@@ -1,10 +1,10 @@
 "use client";
 
-import { Check, Loader2 } from "lucide-react";
-import { FieldLabel, TextArea } from "@/components/field-app/ui";
+import { Check, Loader2, Tag, X } from "lucide-react";
+import { useState } from "react";
+import { FieldLabel, TextArea, TextInput } from "@/components/field-app/ui";
 import {
   CHECKOUT_PLANS,
-  calcDepositMonthly,
   money,
   moneyDecimal,
 } from "@/components/field-app/utils";
@@ -24,39 +24,45 @@ export function Step2Quote({
   taxLoading: boolean;
   onUpdate: (patch: Partial<CheckoutData>) => void;
 }) {
-  const selectedPlan = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
-  const isDepositMonthly = checkout.paymentOption === "deposit-monthly";
+  const selectedPlan      = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
+  const isDepositMonthly  = checkout.paymentOption === "deposit-monthly";
+  const [discountOpen, setDiscountOpen] = useState(!!(checkout.discountAmount && checkout.discountAmount > 0));
 
   function selectPlan(plan: (typeof CHECKOUT_PLANS)[number]) {
     onUpdate({
-      planId: plan.id,
-      planName: plan.name,
-      planPrice: plan.price,
-      paymentOption:
-        plan.id === "protection"
-          ? checkout.paymentOption ?? "deposit-monthly"
-          : "full",
+      planId:        plan.id,
+      planName:      plan.name,
+      planPrice:     plan.price,
+      paymentOption: plan.id === "protection"
+        ? checkout.paymentOption ?? "deposit-monthly"
+        : "full",
       createdAt: checkout.createdAt ?? new Date().toISOString(),
     });
   }
 
-  /* ── Tax math using town-specific rate ── */
-  const taxRate   = townTax?.totalRate ?? checkout.taxRate ?? 0.06;
-  const subtotal  = selectedPlan?.price ?? 0;
-  const taxAmount = subtotal * taxRate;
-  const total     = subtotal + taxAmount;
-  const taxPct    = Math.round(taxRate * 100);
+  function clearDiscount() {
+    onUpdate({ discountAmount: undefined, discountNote: undefined });
+    setDiscountOpen(false);
+  }
 
-  /* ── Deposit / monthly breakdown ── */
-  const breakdown =
-    selectedPlan && isDepositMonthly && selectedPlan.deposit != null
-      ? (() => {
-          const deposit = selectedPlan.deposit ?? 0;
-          const months  = selectedPlan.months ?? 12;
-          const monthly = (total - deposit) / months;
-          return { depositAmount: deposit, monthlyAmount: monthly, months };
-        })()
-      : null;
+  /* ── Price math ── */
+  const taxRate      = townTax?.totalRate ?? checkout.taxRate ?? 0.06;
+  const taxPct       = Math.round(taxRate * 100);
+  const subtotal     = selectedPlan?.price ?? 0;
+  const discount     = Math.min(checkout.discountAmount ?? 0, subtotal);
+  const discounted   = subtotal - discount;
+  const taxAmount    = discounted * taxRate;
+  const total        = discounted + taxAmount;
+
+  /* ── Deposit / monthly breakdown (on total-with-discount) ── */
+  const breakdown = selectedPlan && isDepositMonthly && selectedPlan.deposit != null
+    ? (() => {
+        const dep     = selectedPlan.deposit ?? 0;
+        const months  = selectedPlan.months  ?? 12;
+        const monthly = (total - dep) / months;
+        return { depositAmount: dep, monthlyAmount: monthly, months };
+      })()
+    : null;
 
   return (
     <div className="hs-stepper-step">
@@ -114,9 +120,7 @@ export function Step2Quote({
                     <p className="hs-quote-plan-name">{plan.name}</p>
                   </div>
                   {isSelected && (
-                    <span className="hs-quote-plan-checkmark">
-                      <Check size={13} />
-                    </span>
+                    <span className="hs-quote-plan-checkmark"><Check size={13} /></span>
                   )}
                 </div>
                 <p className="hs-quote-plan-price">{money(plan.price)}</p>
@@ -158,7 +162,6 @@ export function Step2Quote({
             )}
           </div>
 
-          {/* Deposit breakdown */}
           {breakdown && (
             <div className="hs-payment-breakdown">
               <div className="hs-payment-breakdown-row">
@@ -170,9 +173,74 @@ export function Step2Quote({
                 <strong>{moneyDecimal(breakdown.monthlyAmount)}<span className="hs-payment-mo">/mo</span></strong>
               </div>
               <div className="hs-payment-breakdown-row hs-payment-breakdown-row--sub">
-                <span>Remaining balance ({breakdown.months} × {moneyDecimal(breakdown.monthlyAmount)})</span>
+                <span>Remaining ({breakdown.months} × {moneyDecimal(breakdown.monthlyAmount)})</span>
                 <span>{moneyDecimal(breakdown.monthlyAmount * breakdown.months)}</span>
               </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ── Discount (optional, Steven only) ── */}
+      {selectedPlan && (
+        <section className="hs-step-section">
+          {!discountOpen ? (
+            <button
+              type="button"
+              className="hs-discount-toggle"
+              onClick={() => setDiscountOpen(true)}
+            >
+              <Tag size={13} />
+              Add discount
+            </button>
+          ) : (
+            <div className="hs-discount-box">
+              <div className="hs-discount-box-header">
+                <span className="hs-discount-box-title">
+                  <Tag size={13} /> Discount
+                </span>
+                <button
+                  type="button"
+                  className="hs-discount-box-close"
+                  onClick={clearDiscount}
+                  aria-label="Remove discount"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+
+              <div className="hs-discount-fields">
+                <div>
+                  <FieldLabel>Amount ($)</FieldLabel>
+                  <TextInput
+                    type="number"
+                    min={0}
+                    max={subtotal}
+                    step={1}
+                    placeholder="0"
+                    value={checkout.discountAmount ?? ""}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      onUpdate({ discountAmount: isNaN(val) || val <= 0 ? undefined : val });
+                    }}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Reason <span style={{ fontWeight: 400, color: "var(--muted)" }}>(optional)</span></FieldLabel>
+                  <TextInput
+                    placeholder="Customer satisfaction, repeat client…"
+                    value={checkout.discountNote ?? ""}
+                    onChange={(e) => onUpdate({ discountNote: e.target.value || undefined })}
+                  />
+                </div>
+              </div>
+
+              {discount > 0 && (
+                <p className="hs-discount-preview">
+                  Saving {money(discount)} off the list price
+                  {checkout.discountNote ? ` · ${checkout.discountNote}` : ""}
+                </p>
+              )}
             </div>
           )}
         </section>
@@ -189,17 +257,31 @@ export function Step2Quote({
         />
       </section>
 
-      {/* Price total with town-specific tax */}
+      {/* Pricing total */}
       {selectedPlan && (
         <div className="hs-quote-total-box">
           <div className="hs-quote-total-line">
-            <span>Subtotal</span>
+            <span>List price</span>
             <span>{money(subtotal)}</span>
           </div>
+          {discount > 0 && (
+            <div className="hs-quote-total-line hs-quote-total-line--discount">
+              <span>
+                Discount
+                {checkout.discountNote ? ` · ${checkout.discountNote}` : ""}
+              </span>
+              <span>−{money(discount)}</span>
+            </div>
+          )}
+          {discount > 0 && (
+            <div className="hs-quote-total-line">
+              <span>Subtotal after discount</span>
+              <span>{money(discounted)}</span>
+            </div>
+          )}
           <div className="hs-quote-total-line">
             <span>
-              Tax ({taxPct}%
-              {townTax?.localRate ? ` · ${client.owner.city} local option` : " · VT state"})
+              Tax ({taxPct}%{townTax?.localRate ? ` · ${client.owner.city} local option` : " · VT state"})
             </span>
             <span>{moneyDecimal(taxAmount)}</span>
           </div>

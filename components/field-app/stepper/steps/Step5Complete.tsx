@@ -2,19 +2,14 @@
 
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/field-app/ui";
-import {
-  CHECKOUT_PLANS,
-  money,
-  moneyDecimal,
-  TAX_RATE,
-} from "@/components/field-app/utils";
+import { CHECKOUT_PLANS, money, moneyDecimal, TAX_RATE } from "@/components/field-app/utils";
 import { type TownTaxRate } from "@/lib/tax-rates";
 import { clientPacketDocument, receiptDocument } from "@/lib/field-app-documents";
 import { type Assessment, type CheckoutData, formatOwnerAddress } from "@/lib/simple-field";
 
 function openDoc(html: string) {
   const blob = new Blob([html], { type: "text/html" });
-  const url = URL.createObjectURL(blob);
+  const url  = URL.createObjectURL(blob);
   window.open(url, "_blank");
   setTimeout(() => URL.revokeObjectURL(url), 8000);
 }
@@ -30,47 +25,47 @@ export function Step5Complete({
   townTax: TownTaxRate | null;
   completed: boolean;
 }) {
-  const plan = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
+  const plan             = CHECKOUT_PLANS.find((p) => p.id === checkout.planId);
   const isDepositMonthly = checkout.paymentOption === "deposit-monthly";
 
-  /* ── tax math — prefer stored amounts (post-save), fall back to live calc ── */
-  const taxRate   = checkout.taxRate   ?? townTax?.totalRate ?? TAX_RATE;
-  const taxPct    = Math.round(taxRate * 100);
-  const subtotal  = plan?.price ?? 0;
-  const taxAmount = checkout.taxAmount   ?? subtotal * taxRate;
-  const total     = checkout.totalAmount ?? subtotal + taxAmount;
+  /* ── price math — prefer stored amounts (post-complete), fall back to live ── */
+  const taxRate    = checkout.taxRate   ?? townTax?.totalRate ?? TAX_RATE;
+  const taxPct     = Math.round(taxRate * 100);
+  const subtotal   = plan?.price ?? 0;
+  const discount   = Math.min(checkout.discountAmount ?? 0, subtotal);
+  const discounted = subtotal - discount;
+  const taxAmount  = checkout.taxAmount   ?? discounted * taxRate;
+  const total      = checkout.totalAmount ?? discounted + taxAmount;
 
   const breakdown = checkout.depositAmount != null && checkout.monthlyAmount != null && checkout.months != null
     ? { depositAmount: checkout.depositAmount, monthlyAmount: checkout.monthlyAmount, months: checkout.months }
     : plan && isDepositMonthly && plan.deposit != null
     ? (() => {
-        const deposit = plan.deposit ?? 0;
-        const months  = plan.months ?? 12;
-        const monthly = (total - deposit) / months;
-        return { depositAmount: deposit, monthlyAmount: monthly, months };
+        const dep     = plan.deposit ?? 0;
+        const months  = plan.months  ?? 12;
+        const monthly = (total - dep) / months;
+        return { depositAmount: dep, monthlyAmount: monthly, months };
       })()
     : null;
 
   const fullCheckout: CheckoutData = {
-    planId: checkout.planId!,
-    planName: checkout.planName ?? "",
-    planPrice: checkout.planPrice ?? 0,
+    planId:        checkout.planId!,
+    planName:      checkout.planName   ?? "",
+    planPrice:     checkout.planPrice  ?? 0,
     paymentOption: checkout.paymentOption ?? "full",
-    contractNote: checkout.contractNote ?? "",
-    createdAt: checkout.createdAt ?? new Date().toISOString(),
+    contractNote:  checkout.contractNote  ?? "",
+    createdAt:     checkout.createdAt     ?? new Date().toISOString(),
     taxRate,
     taxAmount,
-    totalAmount: total,
+    totalAmount:   total,
     depositAmount: breakdown?.depositAmount,
     monthlyAmount: breakdown?.monthlyAmount,
-    months: breakdown?.months,
+    months:        breakdown?.months,
+    discountAmount: discount > 0 ? discount : undefined,
+    discountNote:   checkout.discountNote,
   };
 
-  const finalAssessment: Assessment = {
-    ...client,
-    status: "finished",
-    checkout: fullCheckout,
-  };
+  const finalAssessment: Assessment = { ...client, status: "finished", checkout: fullCheckout };
 
   if (completed) {
     return (
@@ -85,23 +80,16 @@ export function Step5Complete({
           {plan && (
             <div className="hs-complete-plan-chip">
               {plan.name} &middot; {moneyDecimal(total)}
+              {discount > 0 && <span className="hs-complete-discount-tag">−{money(discount)} discount</span>}
             </div>
           )}
         </div>
 
         <div className="hs-review-actions">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => openDoc(receiptDocument(finalAssessment))}
-          >
+          <Button type="button" variant="secondary" onClick={() => openDoc(receiptDocument(finalAssessment))}>
             View receipt
           </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => openDoc(clientPacketDocument(finalAssessment))}
-          >
+          <Button type="button" variant="secondary" onClick={() => openDoc(clientPacketDocument(finalAssessment))}>
             Client packet
           </Button>
         </div>
@@ -115,52 +103,43 @@ export function Step5Complete({
         <span className="hs-step-eyebrow">Step 5 of 5</span>
         <h2>Complete the job</h2>
         <p className="hs-step-description">
-          Review the final details and mark this job as done. The assessment will be saved as finished and the quote will be locked in.
+          Review the final details and mark this job as done.
         </p>
       </div>
 
-      {/* Job summary */}
       <section className="hs-step-section">
         <p className="hs-step-section-label">Job summary</p>
-        <div className="hs-review-row">
-          <span>Client</span>
-          <strong>{client.owner.name}</strong>
-        </div>
-        <div className="hs-review-row">
-          <span>Address</span>
-          <strong>{formatOwnerAddress(client.owner)}</strong>
-        </div>
-        <div className="hs-review-row">
-          <span>Phone</span>
-          <strong>{client.owner.phone}</strong>
-        </div>
-        {plan && (
-          <div className="hs-review-row">
-            <span>Plan</span>
-            <strong>{plan.name}</strong>
-          </div>
-        )}
+        <div className="hs-review-row"><span>Client</span><strong>{client.owner.name}</strong></div>
+        <div className="hs-review-row"><span>Address</span><strong>{formatOwnerAddress(client.owner)}</strong></div>
+        <div className="hs-review-row"><span>Phone</span><strong>{client.owner.phone}</strong></div>
+        {plan && <div className="hs-review-row"><span>Plan</span><strong>{plan.name}</strong></div>}
         <div className="hs-review-row">
           <span>Payment</span>
           <strong>{isDepositMonthly ? "Deposit + monthly" : "Pay in full"}</strong>
         </div>
       </section>
 
-      {/* Pricing */}
       {plan && (
         <section className="hs-step-section">
           <p className="hs-step-section-label">Pricing</p>
           <div className="hs-review-row">
-            <span>Subtotal</span>
+            <span>List price</span>
             <strong>{money(subtotal)}</strong>
           </div>
+          {discount > 0 && (
+            <div className="hs-review-row hs-review-row--discount">
+              <span>Discount{checkout.discountNote ? ` · ${checkout.discountNote}` : ""}</span>
+              <strong>−{money(discount)}</strong>
+            </div>
+          )}
+          {discount > 0 && (
+            <div className="hs-review-row">
+              <span>Subtotal after discount</span>
+              <strong>{money(discounted)}</strong>
+            </div>
+          )}
           <div className="hs-review-row">
-            <span>
-              Tax ({taxPct}%
-              {townTax?.localRate
-                ? ` · ${client.owner.city} local option`
-                : " · VT state"})
-            </span>
+            <span>Tax ({taxPct}%{townTax?.localRate ? ` · ${client.owner.city} local option` : " · VT state"})</span>
             <strong>{moneyDecimal(taxAmount)}</strong>
           </div>
           <div className="hs-review-row" style={{ borderTop: "2px solid var(--line)", marginTop: 4 }}>
@@ -194,9 +173,7 @@ export function Step5Complete({
       {checkout.contractNote && (
         <section className="hs-step-section">
           <p className="hs-step-section-label">Access &amp; scheduling notes</p>
-          <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.65 }}>
-            {checkout.contractNote}
-          </p>
+          <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.65 }}>{checkout.contractNote}</p>
         </section>
       )}
 

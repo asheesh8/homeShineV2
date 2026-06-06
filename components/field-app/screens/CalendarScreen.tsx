@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowLeft, ChevronLeft, ChevronRight, Phone, Mail, MapPin, X, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Phone, Mail, MapPin, X, RefreshCw, Inbox, Check, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/field-app/ui";
 import { CHECKOUT_PLANS } from "@/components/field-app/utils";
 import { updateAssessment } from "@/components/field-app/api";
 import { type Assessment, type BookingData } from "@/lib/simple-field";
+import { type BookingRequest } from "@/app/api/booking-requests/route";
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
 
@@ -85,6 +86,30 @@ export function CalendarScreen({
   const [reschedDate,  setReschedDate]    = useState("");
   const [reschedTime,  setReschedTime]    = useState("");
   const [saving,       setSaving]         = useState(false);
+
+  /* booking requests inbox */
+  const [requests, setRequests] = useState<BookingRequest[]>([]);
+  const pendingCount = requests.filter(r => r.status === "pending").length;
+
+  useEffect(() => {
+    fetch("/api/booking-requests")
+      .then(r => r.json())
+      .then((d: BookingRequest[] | { error: string }) => {
+        if (Array.isArray(d)) setRequests(d);
+      })
+      .catch(() => {});
+  }, []);
+
+  async function updateRequestStatus(id: string, status: "confirmed" | "declined") {
+    const res = await fetch("/api/booking-requests", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    if (res.ok) {
+      setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+    }
+  }
 
   /* ── calendar grid ── */
   const firstDay    = new Date(calYear, calMonth, 1).getDay();
@@ -235,6 +260,49 @@ export function CalendarScreen({
             );
           });
         })()}
+      </div>
+
+      {/* ── Booking requests inbox ── */}
+      <div className="hs-cal-requests">
+        <p className="hs-cal-upcoming-label">
+          <Inbox size={12} style={{ display:"inline", verticalAlign:"middle", marginRight:4 }}/>
+          Booking requests
+          {pendingCount > 0 && <span className="hs-cal-req-badge">{pendingCount} new</span>}
+        </p>
+        {requests.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--muted)", padding: "12px 0" }}>No booking requests yet.</p>
+        ) : (
+          requests.map(req => (
+            <div key={req.id} className={`hs-cal-req-row ${req.status !== "pending" ? "is-actioned" : ""}`}>
+              <div className="hs-cal-req-info">
+                <strong>{req.name}</strong>
+                <span>{fmtDateLong(req.requestedDate)} at {fmt12(req.requestedTime)}</span>
+                <span style={{ textTransform:"capitalize", fontSize: 11, fontWeight: 700, color: req.serviceType === "consultation" ? "#2563eb" : "var(--green)" }}>
+                  {req.serviceType === "consultation" ? "Consultation" : "Home Assessment"} · {req.city}
+                </span>
+                {req.message && <span className="hs-cal-req-msg">&ldquo;{req.message}&rdquo;</span>}
+              </div>
+              <div className="hs-cal-req-contact">
+                <a href={`tel:${req.phone}`} className="hs-cal-contact-btn" style={{ fontSize: 12, padding: "5px 10px" }}><Phone size={12}/> {req.phone}</a>
+                <a href={`mailto:${req.email}`} className="hs-cal-contact-btn" style={{ fontSize: 12, padding: "5px 10px" }}><Mail size={12}/> Email</a>
+              </div>
+              {req.status === "pending" ? (
+                <div className="hs-cal-req-actions">
+                  <button type="button" className="hs-cal-req-btn is-confirm" onClick={() => updateRequestStatus(req.id, "confirmed")}>
+                    <Check size={13}/> Confirm
+                  </button>
+                  <button type="button" className="hs-cal-req-btn is-decline" onClick={() => updateRequestStatus(req.id, "declined")}>
+                    <XCircle size={13}/> Decline
+                  </button>
+                </div>
+              ) : (
+                <span className={`hs-cal-req-status ${req.status === "confirmed" ? "is-confirmed" : "is-declined"}`}>
+                  {req.status === "confirmed" ? "✓ Confirmed" : "✕ Declined"}
+                </span>
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* ── Detail drawer ── */}

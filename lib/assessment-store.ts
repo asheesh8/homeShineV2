@@ -1,4 +1,4 @@
-import type { Assessment, CheckoutData, Owner, SectionValue } from "@/lib/simple-field";
+import type { Assessment, BookingData, CheckoutData, Owner, SectionValue } from "@/lib/simple-field";
 
 export type AssessmentRow = {
   id: string;
@@ -18,6 +18,7 @@ export type AssessmentRow = {
 
 type PersistedSections = Record<string, SectionValue | null> & {
   __checkout?: CheckoutData | null;
+  __booking?: BookingData | null;
 };
 
 function normalizeOwner(row: AssessmentRow): Owner {
@@ -33,7 +34,7 @@ function normalizeOwner(row: AssessmentRow): Owner {
 
 export function mapRowToAssessment(row: AssessmentRow): Assessment {
   const persistedSections = (row.sections ?? {}) as PersistedSections;
-  const { __checkout: checkout = null, ...sections } = persistedSections;
+  const { __checkout: checkout = null, __booking: booking = null, ...sections } = persistedSections;
 
   return {
     id: row.id,
@@ -44,6 +45,7 @@ export function mapRowToAssessment(row: AssessmentRow): Assessment {
     writeup: row.writeup ?? "",
     aiSummary: row.ai_summary ?? null,
     checkout,
+    booking,
     sections,
   };
 }
@@ -52,6 +54,7 @@ export function mapAssessmentToRow(assessment: Assessment): AssessmentRow {
   const sections = {
     ...assessment.sections,
     __checkout: assessment.checkout ?? null,
+    __booking: assessment.booking ?? null,
   } as PersistedSections;
 
   return {

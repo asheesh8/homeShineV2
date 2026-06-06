@@ -54,6 +54,17 @@ export type CheckoutData = {
   discountNote?: string;
 };
 
+export type BookingData = {
+  /** ISO date string "YYYY-MM-DD" */
+  date: string;
+  /** 24-hour time "HH:MM" */
+  time: string;
+  /** Optional note for access / visit details */
+  note?: string;
+  /** Human label for the visit, e.g. "Full Exterior Clean" */
+  visitLabel?: string;
+};
+
 export type Assessment = {
   id: string;
   owner: Owner;
@@ -63,6 +74,7 @@ export type Assessment = {
   writeup: string;
   aiSummary: AiSummary | null;
   checkout?: CheckoutData | null;
+  booking?: BookingData | null;
   sections: Record<string, SectionValue | null>;
 };
 

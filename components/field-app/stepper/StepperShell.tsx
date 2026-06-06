@@ -6,7 +6,7 @@ import { STEPPER_STEPS } from "@/components/field-app/hooks/useStepperFlow";
 import { Step1ClientSelect } from "@/components/field-app/stepper/steps/Step1ClientSelect";
 import { Step2Quote } from "@/components/field-app/stepper/steps/Step2Quote";
 import { Step3Review } from "@/components/field-app/stepper/steps/Step3Review";
-import { StepPlaceholder } from "@/components/field-app/stepper/steps/StepPlaceholder";
+import { Step4Booking } from "@/components/field-app/stepper/steps/Step4Booking";
 import { Step5Complete } from "@/components/field-app/stepper/steps/Step5Complete";
 import type { useStepperFlow } from "@/components/field-app/hooks/useStepperFlow";
 import type { Assessment } from "@/lib/simple-field";
@@ -28,10 +28,12 @@ export function StepperShell({
     completed,
     selectedAssessment,
     checkoutDraft,
+    bookingDraft,
     townTax,
     taxLoading,
     selectClient,
     updateCheckout,
+    updateBooking,
     saveDraft,
     nextStep,
     prevStep,
@@ -116,11 +118,13 @@ export function StepperShell({
             />
           )}
 
-          {step === 4 && (
-            <StepPlaceholder
-              stepNum={4}
-              label="Payment Link"
-              description="Stripe payment link generation coming soon. Once integrated, Steven will trigger a payment request directly from here after the client approves the quote."
+          {step === 4 && selectedAssessment && (
+            <Step4Booking
+              client={selectedAssessment}
+              checkout={checkoutDraft}
+              booking={bookingDraft}
+              allAssessments={assessments ?? []}
+              onUpdate={updateBooking}
             />
           )}
 

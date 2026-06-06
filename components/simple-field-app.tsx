@@ -8,6 +8,7 @@ import { PipelineScreen } from "@/components/field-app/screens/PipelineScreen";
 import { OwnerScreen } from "@/components/field-app/screens/OwnerScreen";
 import { MenuScreen } from "@/components/field-app/screens/MenuScreen";
 import { SectionScreen } from "@/components/field-app/screens/SectionScreen";
+import { CalendarScreen } from "@/components/field-app/screens/CalendarScreen";
 import { StepperShell } from "@/components/field-app/stepper/StepperShell";
 import { Dialog, ToastHost } from "@/components/field-app/ui";
 import { useAssessments } from "@/components/field-app/hooks/useAssessments";
@@ -94,6 +95,7 @@ export default function SimpleFieldApp() {
             onOpenAssessment={openAssessment}
             onDeleteDraft={askDeleteDraft}
             onNewQuote={openStepper}
+            onCalendar={() => setView("calendar")}
           />
         )}
 
@@ -142,6 +144,15 @@ export default function SimpleFieldApp() {
             onDraft={setSectionDraft}
             onBack={() => setView("menu")}
             onSave={saveSection}
+          />
+        )}
+
+        {session && view === "calendar" && (
+          <CalendarScreen
+            key="calendar"
+            assessments={assessments ?? []}
+            onAssessmentsChange={() => { void loadAssessments(); }}
+            onBack={() => setView("pipeline")}
           />
         )}
       </main>

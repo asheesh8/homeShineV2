@@ -3,7 +3,7 @@
 import { startTransition, useState } from "react";
 import type { DialogState, ToastState } from "@/components/field-app/types";
 import { updateAssessment } from "@/components/field-app/api";
-import { type Assessment, type CheckoutData } from "@/lib/simple-field";
+import { type Assessment, type BookingData, type CheckoutData } from "@/lib/simple-field";
 import { buildCheckoutAmounts, getCheckoutPlan } from "@/components/field-app/utils";
 import { fetchTownTaxRate, type TownTaxRate } from "@/lib/tax-rates";
 
@@ -35,6 +35,9 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
   // Checkout data built in Step 2
   const [checkoutDraft, setCheckoutDraft] = useState<Partial<CheckoutData>>({});
 
+  // Booking data built in Step 4
+  const [bookingDraft, setBookingDraft] = useState<Partial<BookingData>>({});
+
   /* ── Step 1 ──────────────────────────────────────────────────────────── */
 
   async function selectClient(assessment: Assessment | null) {
@@ -60,15 +63,25 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
     setCheckoutDraft((prev) => ({ ...prev, ...patch }));
   }
 
+  /* ── Step 4 ──────────────────────────────────────────────────────────── */
+
+  function updateBooking(patch: Partial<BookingData>) {
+    setBookingDraft((prev) => ({ ...prev, ...patch }));
+  }
+
   /* ── Persistence ─────────────────────────────────────────────────────── */
 
   async function persist(overrides: Partial<Assessment> = {}): Promise<Assessment | null> {
     if (!selectedAssessment) return null;
     setIsSaving(true);
     try {
+      const booking = bookingDraft.date && bookingDraft.time
+        ? (bookingDraft as BookingData)
+        : (selectedAssessment.booking ?? null);
       const saved = await updateAssessment({
         ...selectedAssessment,
         checkout: checkoutDraft as CheckoutData,
+        booking,
         updatedAt: new Date().toISOString(),
         ...overrides,
       });
@@ -181,6 +194,7 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
     setStep(1);
     setSelectedAssessment(null);
     setCheckoutDraft({});
+    setBookingDraft({});
     setTownTax(null);
     setTaxLoading(false);
     setIsSaving(false);
@@ -195,9 +209,11 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
     completed,
     selectedAssessment,
     checkoutDraft,
+    bookingDraft,
     totalSteps: STEPPER_STEPS.length,
     selectClient,
     updateCheckout,
+    updateBooking,
     saveDraft,
     completeJob,
     nextStep,

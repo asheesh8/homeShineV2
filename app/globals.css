@@ -2666,3 +2666,104 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   BOOKING STEP (Step 4)
+   ========================================================= */
+
+.hs-booking-plan-chip { font-size: 11px; font-weight: 700; background: var(--green-soft); color: var(--green); border: 1px solid #c6e6d3; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.hs-cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.hs-cal-title { font-size: 15px; font-weight: 700; color: var(--ink); }
+.hs-cal-nav { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--ink-2); cursor: pointer; transition: background 0.15s; }
+.hs-cal-nav:hover { background: var(--green-soft); color: var(--green); }
+.hs-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+.hs-cal-day-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); text-align: center; padding: 4px 0 6px; }
+.hs-cal-day { position: relative; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; border: 1.5px solid transparent; background: transparent; cursor: pointer; transition: background 0.12s, border-color 0.12s; gap: 2px; }
+.hs-cal-day:hover:not(:disabled):not(.is-selected) { background: var(--green-soft); border-color: #c6e6d3; }
+.hs-cal-day.is-today .hs-cal-day-num { color: var(--green); font-weight: 800; }
+.hs-cal-day.is-today { border-color: #c6e6d3; }
+.hs-cal-day.is-selected { background: var(--green); border-color: var(--green); }
+.hs-cal-day.is-selected .hs-cal-day-num { color: #fff; font-weight: 700; }
+.hs-cal-day.is-past { opacity: 0.35; cursor: not-allowed; }
+.hs-cal-day.is-booked:not(.is-selected) { background: #fef9c3; border-color: #fde68a; }
+.hs-cal-day-num { font-size: 13px; font-weight: 500; color: var(--ink); line-height: 1; }
+.hs-cal-dot { width: 5px; height: 5px; border-radius: 50%; background: #b45309; }
+.hs-cal-day.is-selected .hs-cal-dot { background: rgba(255,255,255,0.6); }
+.hs-cal-legend { display: flex; gap: 16px; margin-top: 10px; font-size: 11px; color: var(--muted); }
+.hs-cal-legend span { display: flex; align-items: center; gap: 5px; }
+.hs-cal-legend-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid transparent; }
+.hs-cal-legend-dot.is-selected { background: var(--green); }
+.hs-cal-legend-dot.is-booked { background: #fef9c3; border-color: #fde68a; }
+.hs-cal-legend-dot.is-today { border-color: #c6e6d3; background: transparent; }
+.hs-time-group { margin-bottom: 12px; }
+.hs-time-group-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; }
+.hs-time-slots { display: flex; flex-wrap: wrap; gap: 8px; }
+.hs-time-slot { padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); font-size: 13px; font-weight: 500; color: var(--ink-2); cursor: pointer; transition: border-color 0.12s, background 0.12s, color 0.12s; }
+.hs-time-slot:hover:not(.is-selected) { border-color: var(--green); color: var(--green); background: var(--green-soft); }
+.hs-time-slot.is-selected { background: var(--green); border-color: var(--green); color: #fff; font-weight: 700; }
+.hs-booking-summary { display: flex; align-items: flex-start; gap: 14px; background: var(--green-soft); border: 1px solid #c6e6d3; border-radius: 14px; padding: 16px 18px; margin-top: 4px; }
+.hs-booking-summary-icon { color: var(--green); flex-shrink: 0; margin-top: 2px; }
+.hs-booking-summary-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--green); margin: 0 0 2px; }
+.hs-booking-summary-date { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0 0 2px; }
+.hs-booking-summary-client { font-size: 12.5px; color: var(--ink-2); margin: 0; }
+
+/* =========================================================
+   CALENDAR SCREEN
+   ========================================================= */
+
+.hs-cal-screen { max-width: 680px; margin: 0 auto; padding: 16px 16px 40px; }
+.hs-cal-screen-header { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.hs-cal-back-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; transition: color 0.12s; }
+.hs-cal-back-btn:hover { color: var(--green); }
+.hs-cal-screen-title { font-size: 22px; font-weight: 800; color: var(--ink); margin: 0; }
+.hs-cal-screen-sub { font-size: 13px; color: var(--muted); margin: 0; }
+.hs-cal-screen-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.hs-cal-screen-month { font-size: 17px; font-weight: 700; color: var(--ink); }
+.hs-cal-screen-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-bottom: 20px; }
+.hs-cal-screen-day-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); text-align: center; padding: 3px 0 6px; }
+.hs-cal-screen-cell { min-height: 72px; border: 1px solid var(--line); border-radius: 8px; padding: 4px 5px; background: var(--surface); display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+.hs-cal-screen-cell.is-pad { background: transparent; border-color: transparent; }
+.hs-cal-screen-cell.is-today { border-color: var(--green); background: var(--green-soft); }
+.hs-cal-screen-cell.is-past { background: #f8fafc; opacity: 0.65; }
+.hs-cal-screen-day-num { font-size: 11px; font-weight: 600; color: var(--muted); line-height: 1; }
+.hs-cal-screen-cell.is-today .hs-cal-screen-day-num { color: var(--green); font-weight: 800; }
+.hs-cal-job-chip { display: flex; flex-direction: column; align-items: flex-start; width: 100%; padding: 2px 5px; border-radius: 5px; border: none; background: color-mix(in srgb, var(--chip-color, var(--green)) 15%, transparent); border-left: 2.5px solid var(--chip-color, var(--green)); cursor: pointer; text-align: left; transition: opacity 0.12s; }
+.hs-cal-job-chip:hover { opacity: 0.8; }
+.hs-cal-job-time { font-size: 9px; font-weight: 700; color: var(--chip-color, var(--green)); line-height: 1; }
+.hs-cal-job-name { font-size: 9.5px; font-weight: 600; color: var(--ink); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.hs-cal-upcoming { margin-bottom: 20px; }
+.hs-cal-upcoming-label { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; color: var(--green); margin-bottom: 8px; }
+.hs-cal-upcoming-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; text-align: left; margin-bottom: 6px; transition: border-color 0.12s, background 0.12s; }
+.hs-cal-upcoming-row:hover { border-color: var(--green); background: var(--green-soft); }
+.hs-cal-upcoming-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.hs-cal-upcoming-info { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.hs-cal-upcoming-info strong { font-size: 13.5px; color: var(--ink); }
+.hs-cal-upcoming-info span { font-size: 12px; color: var(--ink-2); }
+.hs-cal-upcoming-plan { font-size: 10.5px; font-weight: 700; color: var(--green) !important; text-transform: uppercase; letter-spacing: .06em; }
+.hs-cal-upcoming-addr { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.hs-cal-drawer-overlay { position: fixed; inset: 0; background: rgba(24,38,56,.35); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
+.hs-cal-drawer { background: var(--surface); border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto; box-shadow: 0 -8px 32px rgba(24,38,56,.18); }
+.hs-cal-drawer-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 20px 0; }
+.hs-cal-drawer-eyebrow { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--green); margin: 0 0 2px; }
+.hs-cal-drawer-name { font-size: 20px; font-weight: 800; color: var(--ink); margin: 0; }
+.hs-cal-drawer-close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; color: var(--muted); }
+.hs-cal-drawer-body { padding: 14px 20px 28px; display: flex; flex-direction: column; gap: 14px; }
+.hs-cal-drawer-time-block { background: var(--green-soft); border: 1px solid #c6e6d3; border-radius: 12px; padding: 14px 16px; }
+.hs-cal-drawer-time-date { font-size: 13px; color: var(--ink-2); margin: 0 0 2px; }
+.hs-cal-drawer-time-time { font-size: 22px; font-weight: 800; color: var(--ink); margin: 0 0 2px; }
+.hs-cal-drawer-visit-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--green); margin: 0; }
+.hs-cal-drawer-contact { display: flex; gap: 8px; flex-wrap: wrap; }
+.hs-cal-contact-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); font-size: 13px; font-weight: 500; color: var(--ink-2); text-decoration: none; transition: border-color 0.12s, color 0.12s, background 0.12s; }
+.hs-cal-contact-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-soft); }
+.hs-cal-drawer-address { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--muted); }
+.hs-cal-drawer-note { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+.hs-cal-drawer-note-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 4px; }
+.hs-cal-reschedule-box { background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.hs-cal-date-input { width: 100%; padding: 8px 12px; border: 1.5px solid var(--line); border-radius: 8px; font-size: 14px; color: var(--ink); background: var(--surface); margin-top: 4px; }
+.hs-cal-date-input:focus { outline: none; border-color: var(--green); }
+
+@media (max-width: 480px) {
+  .hs-cal-screen-cell { min-height: 56px; }
+  .hs-cal-job-name { display: none; }
+  .hs-cal-screen { padding: 12px 10px 32px; }
+}

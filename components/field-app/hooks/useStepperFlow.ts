@@ -13,8 +13,6 @@ export const STEPPER_STEPS = [
   { label: "Complete", short: "Done"   },
 ] as const;
 
-export type StepperStep = (typeof STEPPER_STEPS)[number];
-
 type NotifyFns = {
   showToast: (t: ToastState) => void;
   showDialog: (d: DialogState) => void;
@@ -23,29 +21,29 @@ type NotifyFns = {
 export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
   const [step, setStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
+  const [completed, setCompleted] = useState(false);
 
-  // The assessment selected in Step 1 — this is the source of truth for client data
+  // The assessment selected in Step 1
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
 
-  // Checkout draft built up through steps 2-5
+  // Checkout data built in Step 2
   const [checkoutDraft, setCheckoutDraft] = useState<Partial<CheckoutData>>({});
 
-  /* ── Step 1: client selection ───────────────────────────────────────── */
+  /* ── Step 1 ──────────────────────────────────────────────────────────── */
 
   function selectClient(assessment: Assessment | null) {
     setSelectedAssessment(assessment);
   }
 
-  /* ── Step 2+: checkout data ─────────────────────────────────────────── */
+  /* ── Step 2 ──────────────────────────────────────────────────────────── */
 
   function updateCheckout(patch: Partial<CheckoutData>) {
     setCheckoutDraft((prev) => ({ ...prev, ...patch }));
   }
 
-  /* ── persistence ────────────────────────────────────────────────────── */
+  /* ── Persistence ─────────────────────────────────────────────────────── */
 
-  // Attach the checkout draft to the selected assessment in Supabase
-  async function persist(): Promise<Assessment | null> {
+  async function persist(overrides: Partial<Assessment> = {}): Promise<Assessment | null> {
     if (!selectedAssessment) return null;
     setIsSaving(true);
     try {
@@ -53,6 +51,7 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
         ...selectedAssessment,
         checkout: checkoutDraft as CheckoutData,
         updatedAt: new Date().toISOString(),
+        ...overrides,
       });
       setSelectedAssessment(saved);
       return saved;
@@ -70,7 +69,7 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
 
   async function saveDraft() {
     if (!selectedAssessment) {
-      showToast({ tone: "error", title: "No client selected", description: "Pick a client in Step 1 first." });
+      showDialog({ tone: "error", title: "No client selected", body: "Pick a client in Step 1 first." });
       return;
     }
     const saved = await persist();
@@ -79,63 +78,96 @@ export function useStepperFlow({ showToast, showDialog }: NotifyFns) {
     }
   }
 
-  /* ── step validation ────────────────────────────────────────────────── */
+  /* ── Step 5: mark complete ───────────────────────────────────────────── */
 
-  function validateStep1(): string[] {
-    return selectedAssessment ? [] : ["Select a client to continue."];
+  async function completeJob() {
+    if (!selectedAssessment || !checkoutDraft.planId) {
+      showDialog({ tone: "error", title: "Quote incomplete", body: "Go back to Step 2 and select a plan first." });
+      return;
+    }
+    const fullCheckout: CheckoutData = {
+      planId: checkoutDraft.planId,
+      planName: checkoutDraft.planName ?? "",
+      planPrice: checkoutDraft.planPrice ?? 0,
+      paymentOption: checkoutDraft.paymentOption ?? "full",
+      contractNote: checkoutDraft.contractNote ?? "",
+      createdAt: checkoutDraft.createdAt ?? new Date().toISOString(),
+    };
+    const saved = await persist({ status: "finished", checkout: fullCheckout });
+    if (saved) {
+      startTransition(() => setCompleted(true));
+      showToast({ tone: "success", title: "Job complete!", description: `${saved.owner.name} is marked finished.` });
+    }
   }
 
-  /* ── navigation ─────────────────────────────────────────────────────── */
+  /* ── Validation ──────────────────────────────────────────────────────── */
+
+  function validateStep(s: number): string[] {
+    if (s === 1) return selectedAssessment ? [] : ["Select a client to continue."];
+    if (s === 2) return checkoutDraft.planId ? [] : ["Select a service plan to continue."];
+    return [];
+  }
+
+  /* ── Navigation ──────────────────────────────────────────────────────── */
 
   async function nextStep() {
-    let errors: string[] = [];
-    if (step === 1) errors = validateStep1();
-
-    if (errors.length > 0) {
-      showDialog({
-        tone: "error",
-        title: "Complete this step first",
-        body: errors.join("\n"),
-      });
+    // Last step → mark complete
+    if (step === STEPPER_STEPS.length) {
+      await completeJob();
       return;
     }
 
-    // Persist when leaving step 1 (attaches checkout shell to the assessment)
-    if (step === 1 && selectedAssessment) {
+    const errors = validateStep(step);
+    if (errors.length > 0) {
+      showDialog({ tone: "error", title: "Complete this step first", body: errors.join("\n") });
+      return;
+    }
+
+    // Persist when leaving step 2 (attach quote to assessment)
+    if (step === 2) {
+      const saved = await persist();
+      if (!saved) return;
+      showToast({
+        tone: "success",
+        title: "Quote saved",
+        description: `${checkoutDraft.planName} attached to ${selectedAssessment!.owner.name}.`,
+      });
+    } else if (step === 1) {
       showToast({
         tone: "success",
         title: "Client selected",
-        description: `Building quote for ${selectedAssessment.owner.name}.`,
+        description: `Building quote for ${selectedAssessment!.owner.name}.`,
       });
     }
 
-    if (step < STEPPER_STEPS.length) {
-      startTransition(() => setStep((s) => s + 1));
-    }
+    startTransition(() => setStep((s) => s + 1));
   }
 
   function prevStep() {
     if (step > 1) startTransition(() => setStep((s) => s - 1));
   }
 
-  /* ── lifecycle ──────────────────────────────────────────────────────── */
+  /* ── Lifecycle ───────────────────────────────────────────────────────── */
 
   function reset() {
     setStep(1);
     setSelectedAssessment(null);
     setCheckoutDraft({});
     setIsSaving(false);
+    setCompleted(false);
   }
 
   return {
     step,
     isSaving,
+    completed,
     selectedAssessment,
     checkoutDraft,
     totalSteps: STEPPER_STEPS.length,
     selectClient,
     updateCheckout,
     saveDraft,
+    completeJob,
     nextStep,
     prevStep,
     reset,

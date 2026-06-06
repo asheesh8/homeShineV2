@@ -4,7 +4,10 @@ import { ArrowLeft, ArrowRight, Save, X } from "lucide-react";
 import { Button } from "@/components/field-app/ui";
 import { STEPPER_STEPS } from "@/components/field-app/hooks/useStepperFlow";
 import { Step1ClientSelect } from "@/components/field-app/stepper/steps/Step1ClientSelect";
+import { Step2Quote } from "@/components/field-app/stepper/steps/Step2Quote";
+import { Step3Review } from "@/components/field-app/stepper/steps/Step3Review";
 import { StepPlaceholder } from "@/components/field-app/stepper/steps/StepPlaceholder";
+import { Step5Complete } from "@/components/field-app/stepper/steps/Step5Complete";
 import type { useStepperFlow } from "@/components/field-app/hooks/useStepperFlow";
 import type { Assessment } from "@/lib/simple-field";
 
@@ -19,25 +22,51 @@ export function StepperShell({
   assessments: Assessment[] | null;
   onExit: () => void;
 }) {
-  const { step, isSaving, selectedAssessment, selectClient, nextStep, prevStep, saveDraft } = flow;
+  const {
+    step,
+    isSaving,
+    completed,
+    selectedAssessment,
+    checkoutDraft,
+    selectClient,
+    updateCheckout,
+    saveDraft,
+    nextStep,
+    prevStep,
+  } = flow;
 
   const isFirst = step === 1;
   const isLast  = step === STEPPER_STEPS.length;
 
+  /* ── footer label / action ── */
+  const nextLabel = isLast
+    ? completed ? "Done →" : "Mark as complete"
+    : "Next";
+
+  function handleNext() {
+    if (isLast && completed) { onExit(); return; }
+    void nextStep();
+  }
+
   return (
     <div className="hs-stepper-page">
 
-      {/* ── Top bar: exit + step indicator ──────────────────────────── */}
+      {/* ── Top bar ───────────────────────────────────────────────── */}
       <div className="hs-stepper-topbar">
-        <button type="button" className="hs-stepper-exit" onClick={onExit} aria-label="Exit to pipeline">
+        <button
+          type="button"
+          className="hs-stepper-exit"
+          onClick={onExit}
+          aria-label="Exit to pipeline"
+        >
           <X size={18} />
         </button>
 
         <div className="hs-step-bar">
           {STEPPER_STEPS.map((s, i) => {
             const num    = i + 1;
-            const done   = num < step;
-            const active = num === step;
+            const done   = num < step || (isLast && completed);
+            const active = num === step && !completed;
             return (
               <div key={s.label} className="hs-step-item">
                 <div className={`hs-step-circle ${done ? "is-done" : ""} ${active ? "is-active" : ""}`}>
@@ -55,9 +84,9 @@ export function StepperShell({
         </div>
       </div>
 
-      {/* ── Step content ─────────────────────────────────────────────── */}
+      {/* ── Step content ──────────────────────────────────────────── */}
       <div className="hs-stepper-body">
-        <div className="hs-stepper-content hs-screen-enter" key={`step-${step}`}>
+        <div className="hs-stepper-content hs-screen-enter" key={`step-${step}-${String(completed)}`}>
 
           {step === 1 && (
             <Step1ClientSelect
@@ -67,19 +96,18 @@ export function StepperShell({
             />
           )}
 
-          {step === 2 && (
-            <StepPlaceholder
-              stepNum={2}
-              label="Quote Builder"
-              description="Choose a service plan, add line items, set the price, and select the payment method."
+          {step === 2 && selectedAssessment && (
+            <Step2Quote
+              client={selectedAssessment}
+              checkout={checkoutDraft}
+              onUpdate={updateCheckout}
             />
           )}
 
-          {step === 3 && (
-            <StepPlaceholder
-              stepNum={3}
-              label="Review & Send"
-              description="Preview the client packet and send the quote to the homeowner for approval."
+          {step === 3 && selectedAssessment && (
+            <Step3Review
+              client={selectedAssessment}
+              checkout={checkoutDraft}
             />
           )}
 
@@ -87,35 +115,53 @@ export function StepperShell({
             <StepPlaceholder
               stepNum={4}
               label="Payment Link"
-              description="Generate a Stripe payment link once the client approves. Steven triggers this."
+              description="Stripe payment link generation coming soon. Once integrated, Steven will trigger a payment request directly from here after the client approves the quote."
             />
           )}
 
-          {step === 5 && (
-            <StepPlaceholder
-              stepNum={5}
-              label="Complete"
-              description="Mark the job done, generate the receipt, and close out the record in Supabase."
+          {step === 5 && selectedAssessment && (
+            <Step5Complete
+              client={selectedAssessment}
+              checkout={checkoutDraft}
+              completed={completed}
             />
           )}
 
         </div>
       </div>
 
-      {/* ── Sticky footer ────────────────────────────────────────────── */}
+      {/* ── Footer ───────────────────────────────────────────────── */}
       <div className="hs-stepper-footer">
-        <Button type="button" variant="ghost" onClick={prevStep} disabled={isFirst || isSaving}>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={prevStep}
+          disabled={isFirst || isSaving || completed}
+        >
           <ArrowLeft size={16} />
           Back
         </Button>
 
-        <Button type="button" variant="secondary" onClick={saveDraft} disabled={isSaving}>
-          <Save size={15} />
-          {isSaving ? "Saving…" : "Save draft"}
-        </Button>
+        {!completed && (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={saveDraft}
+            disabled={isSaving}
+          >
+            <Save size={15} />
+            {isSaving ? "Saving…" : "Save draft"}
+          </Button>
+        )}
 
-        <Button type="button" onClick={nextStep} disabled={isSaving}>
-          {isLast ? "Complete" : "Next"}
+        {completed && <div />}
+
+        <Button
+          type="button"
+          onClick={handleNext}
+          disabled={isSaving}
+        >
+          {nextLabel}
           {!isLast && <ArrowRight size={16} />}
         </Button>
       </div>

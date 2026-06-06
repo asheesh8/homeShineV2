@@ -19,7 +19,7 @@ export function SectionScreen({
   onBack: () => void;
   onSave: () => void;
 }) {
-  function set(key: string, value: unknown) {
+  function set(key: string, value: string | number | boolean) {
     onDraft({ ...sectionDraft, [key]: value });
   }
 

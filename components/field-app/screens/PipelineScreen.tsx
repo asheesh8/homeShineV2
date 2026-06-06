@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { CalendarDays, ClipboardList, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, ClipboardList, Plus, Trash2, ReceiptText } from "lucide-react";
 import { Badge, Button, Panel } from "@/components/field-app/ui";
 import { DocumentPicker } from "@/components/field-app/panels/DocumentPicker";
 import type { Session, StatusFilter } from "@/components/field-app/types";
@@ -18,6 +18,7 @@ export function PipelineScreen({
   onDeleteDraft,
   onNewQuote,
   onCalendar,
+  onTax,
 }: {
   session: Session;
   assessments: Assessment[] | null;
@@ -28,6 +29,7 @@ export function PipelineScreen({
   onDeleteDraft: (id: string) => void;
   onNewQuote: () => void;
   onCalendar: () => void;
+  onTax: () => void;
 }) {
   const isStevenOnly = session.id === "steven";
   const filtered = useMemo(() => {
@@ -46,6 +48,10 @@ export function PipelineScreen({
         <div className="hs-page-title-actions">
           {isStevenOnly && (
             <>
+              <Button type="button" variant="secondary" onClick={onTax}>
+                <ReceiptText size={16} />
+                Tax
+              </Button>
               <Button type="button" variant="secondary" onClick={onCalendar}>
                 <CalendarDays size={16} />
                 Calendar

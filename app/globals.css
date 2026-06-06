@@ -1069,12 +1069,11 @@ h2 {
 }
 
 .hs-assessment-card {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.2s ease;
 }
 
 .hs-assessment-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(23, 34, 53, 0.14), 0 2px 8px rgba(23, 34, 53, 0.08);
 }
 
 .hs-section-tile {

@@ -1619,11 +1619,12 @@ h2 {
   gap: 8px;
 }
 
-/* Steven-only tool buttons grouped together */
+/* Steven-only tool buttons — sits below title row */
 .hs-pipeline-tools {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 10px;
 }
 
 /* ── Multi-step quote stepper ────────────────────────────────────────── */
@@ -2808,15 +2809,10 @@ h2 {
   .hs-tax-pay-links { gap: 8px; }
   .hs-tax-link-btn { font-size: 11px; padding: 6px 12px; }
 
-  /* ── Pipeline header — compact on mobile ── */
-  .hs-page-title { flex-wrap: wrap; gap: 8px; }
-  .hs-page-title-actions { gap: 6px; }
-  /* Tool buttons row: shrink text, keep inline */
-  .hs-pipeline-tools { gap: 6px; }
+  /* ── Pipeline header — New button stays top-right, tools row below ── */
+  .hs-pipeline-tools { gap: 6px; margin-bottom: 8px; }
   .hs-pipeline-tools .hs-btn { font-size: 12px; padding: 7px 10px; min-height: 36px; gap: 4px; }
   .hs-pipeline-tools .hs-btn svg { width: 13px; height: 13px; }
-  /* Primary New button stays full-size */
-  .hs-page-title-actions > .hs-btn { padding: 9px 14px; font-size: 14px; }
 }
 
 /* Duration picker additions */

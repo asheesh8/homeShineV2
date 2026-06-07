@@ -45,29 +45,28 @@ export function PipelineScreen({
           <p className="hs-kicker">Pipeline</p>
           <h1>Assessments</h1>
         </div>
-        <div className="hs-page-title-actions">
-          {isStevenOnly && (
-            <div className="hs-pipeline-tools">
-              <Button type="button" variant="secondary" onClick={onTax}>
-                <ReceiptText size={15} />
-                Tax
-              </Button>
-              <Button type="button" variant="secondary" onClick={onCalendar}>
-                <CalendarDays size={15} />
-                Calendar
-              </Button>
-              <Button type="button" variant="secondary" onClick={onNewQuote}>
-                <ClipboardList size={15} />
-                New Quote
-              </Button>
-            </div>
-          )}
-          <Button type="button" onClick={onNewAssessment}>
-            <Plus size={18} />
-            New
+        <Button type="button" onClick={onNewAssessment}>
+          <Plus size={18} />
+          New
+        </Button>
+      </div>
+
+      {isStevenOnly && (
+        <div className="hs-pipeline-tools">
+          <Button type="button" variant="secondary" onClick={onTax}>
+            <ReceiptText size={15} />
+            Tax
+          </Button>
+          <Button type="button" variant="secondary" onClick={onCalendar}>
+            <CalendarDays size={15} />
+            Calendar
+          </Button>
+          <Button type="button" variant="secondary" onClick={onNewQuote}>
+            <ClipboardList size={15} />
+            New Quote
           </Button>
         </div>
-      </div>
+      )}
 
       <div className="hs-segmented">
         {(["all", "draft", "ongoing", "finished"] as const).map((value) => (

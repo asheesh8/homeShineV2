@@ -100,7 +100,7 @@ function assessmentRevenue(a: Assessment): number {
 /* ──────────────────────────────────────────────────────────────────────── */
 
 export function TaxScreen({
-  assessments,
+  assessments: initialAssessments,
   onBack,
 }: {
   assessments: Assessment[];
@@ -108,6 +108,10 @@ export function TaxScreen({
 }) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
+  const [assessments, setAssessments] = useState<Assessment[]>(initialAssessments);
+  const [deletingJobId, setDeletingJobId] = useState<string | null>(null);
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
+  const [editAmount, setEditAmount] = useState("");
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loadingExp, setLoadingExp] = useState(true);
 
@@ -226,6 +230,31 @@ export function TaxScreen({
   async function deleteExpense(id: string) {
     const res = await fetch(`/api/expenses?id=${id}`, { method: "DELETE" });
     if (res.ok) setExpenses(prev => prev.filter(e => e.id !== id));
+  }
+
+  async function deleteJob(id: string) {
+    setDeletingJobId(id);
+    const res = await fetch(`/api/assessments/${id}`, { method: "DELETE" });
+    if (res.ok) setAssessments(prev => prev.filter(a => a.id !== id));
+    setDeletingJobId(null);
+  }
+
+  async function saveJobAmount(a: Assessment) {
+    const parsed = parseFloat(editAmount);
+    if (isNaN(parsed) || parsed < 0) return;
+    const updated: Assessment = {
+      ...a,
+      checkout: { ...a.checkout!, totalAmount: parsed, planPrice: parsed },
+    };
+    const res = await fetch(`/api/assessments/${a.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assessment: updated }),
+    });
+    if (res.ok) {
+      setAssessments(prev => prev.map(x => x.id === a.id ? updated : x));
+    }
+    setEditingJobId(null);
   }
 
   const todayStr = isoDate(now);
@@ -517,16 +546,48 @@ export function TaxScreen({
                   const payOpt = a.checkout?.paymentOption === "deposit-monthly"
                     ? " (Financed)"
                     : a.checkout?.paymentOption === "full" ? " (Paid in full)" : "";
+                  const isEditing = editingJobId === a.id;
                   return (
-                    <div key={a.id} className="hs-tax-exp-row">
-                      <div className="hs-tax-exp-info">
+                    <div key={a.id} className="hs-tax-exp-row" style={{ flexWrap: "wrap", gap: 6 }}>
+                      <div className="hs-tax-exp-info" style={{ flex: "1 1 60%" }}>
                         <strong>{a.owner.name}</strong>
                         <span>{planName}{payOpt} · {date} · {a.owner.city}</span>
+                        <span style={{ fontSize: 10, color: "var(--muted)" }}>#{String(i + 1).padStart(3, "0")}</span>
                       </div>
-                      <span className="hs-tax-exp-amt" style={{ color: "var(--green)" }}>{moneyDec(rev)}</span>
-                      <span className="hs-tax-inv-num" style={{ fontSize: 10, color: "var(--muted)", minWidth: 32, textAlign: "right" }}>
-                        #{String(i + 1).padStart(3, "0")}
-                      </span>
+                      {isEditing ? (
+                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                          <input
+                            type="number"
+                            className="hs-cal-date-input"
+                            style={{ width: 100, padding: "4px 8px", fontSize: 13 }}
+                            value={editAmount}
+                            step="0.01"
+                            min="0"
+                            autoFocus
+                            onChange={e => setEditAmount(e.target.value)}
+                          />
+                          <button type="button" className="hs-tax-del-btn" style={{ color: "var(--green)" }} onClick={() => saveJobAmount(a)}>✓</button>
+                          <button type="button" className="hs-tax-del-btn" onClick={() => setEditingJobId(null)}>✕</button>
+                        </div>
+                      ) : (
+                        <span
+                          className="hs-tax-exp-amt"
+                          style={{ color: "var(--green)", cursor: "pointer" }}
+                          title="Click to edit"
+                          onClick={() => { setEditingJobId(a.id); setEditAmount(String(rev)); }}
+                        >
+                          {moneyDec(rev)}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        className="hs-tax-del-btn"
+                        onClick={() => deleteJob(a.id)}
+                        disabled={deletingJobId === a.id}
+                        aria-label="Delete invoice"
+                      >
+                        {deletingJobId === a.id ? "…" : <Trash2 size={13} />}
+                      </button>
                     </div>
                   );
                 })}

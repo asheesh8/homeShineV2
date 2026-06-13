@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
-import { CalendarDays, ClipboardList, Plus, Trash2, ReceiptText } from "lucide-react";
+import { useMemo, useState } from "react";
+import { CalendarDays, ClipboardList, Plus, Trash2, ReceiptText, MessageCircle } from "lucide-react";
 import { Badge, Button, Panel } from "@/components/field-app/ui";
 import { DocumentPicker } from "@/components/field-app/panels/DocumentPicker";
+import { ReachOutSheet } from "@/components/field-app/panels/ReachOutSheet";
 import type { Session, StatusFilter } from "@/components/field-app/types";
 import { countDone, getCheckoutPlan, statusLabel, statusTone } from "@/components/field-app/utils";
 import { type Assessment, formatOwnerAddress, sectionDefinitions } from "@/lib/simple-field";
@@ -31,6 +32,7 @@ export function PipelineScreen({
   onCalendar: () => void;
   onTax: () => void;
 }) {
+  const [reachOutTarget, setReachOutTarget] = useState<Assessment | null>(null);
   const isStevenOnly = session.id === "steven";
   const filtered = useMemo(() => {
     if (!assessments) return null;
@@ -125,6 +127,17 @@ export function PipelineScreen({
 
               <div className="hs-card-actions">
                 <DocumentPicker assessment={assessment} hasCheckout={!!assessment.checkout?.planId} />
+                {(assessment.status === "ongoing" || assessment.status === "finished") && (
+                  <Button
+                    type="button"
+                    variant={assessment.status === "finished" ? "primary" : "secondary"}
+                    onClick={() => setReachOutTarget(assessment)}
+                    aria-label="Reach out to client"
+                  >
+                    <MessageCircle size={16} />
+                    {assessment.status === "finished" ? "Reach Out" : "Message"}
+                  </Button>
+                )}
                 {assessment.status === "draft" && (
                   <Button
                     type="button"
@@ -140,6 +153,13 @@ export function PipelineScreen({
           );
         })}
       </div>
+
+      {reachOutTarget && (
+        <ReachOutSheet
+          assessment={reachOutTarget}
+          onClose={() => setReachOutTarget(null)}
+        />
+      )}
     </section>
   );
 }

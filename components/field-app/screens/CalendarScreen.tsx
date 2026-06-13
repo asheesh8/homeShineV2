@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ChevronLeft, ChevronRight, Phone, Mail, MapPin, X, RefreshCw, Inbox, Check, XCircle } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Phone, Mail, MapPin, X, RefreshCw, Inbox, Check, XCircle, Bell, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/field-app/ui";
 import { CHECKOUT_PLANS } from "@/components/field-app/utils";
@@ -52,6 +52,60 @@ function fmtDateLong(iso: string) {
 const MORNING_SLOTS   = ["08:00","09:00","10:00","11:00"];
 const AFTERNOON_SLOTS = ["13:00","14:00","15:00","16:00"];
 const ALL_SLOTS       = [...MORNING_SLOTS, ...AFTERNOON_SLOTS];
+
+/* Protection Plan follow-up schedule: offsets in months from initial service date */
+const PROTECTION_VISITS = [
+  { label: "Visit 1", detail: "Initial deep clean",      monthOffset: 0  },
+  { label: "Visit 2", detail: "12-month maintenance",    monthOffset: 12 },
+  { label: "Visit 3", detail: "18-month tune-up",        monthOffset: 18 },
+];
+
+interface FollowUp {
+  assessment: Assessment;
+  visitIndex: number;       // 0-based
+  dueDate: Date;
+  isOverdue: boolean;
+  isDueSoon: boolean;       // within 30 days
+}
+
+function addMonths(date: Date, months: number): Date {
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + months);
+  return d;
+}
+
+function buildFollowUps(assessments: Assessment[], today: Date): FollowUp[] {
+  const results: FollowUp[] = [];
+  const todayMs = today.getTime();
+  const soon = 30 * 24 * 60 * 60 * 1000;
+
+  for (const a of assessments) {
+    if (a.checkout?.planId !== "protection") continue;
+    const baseDateStr = a.booking?.date ?? a.createdAt;
+    if (!baseDateStr) continue;
+    const baseDate = new Date(baseDateStr.slice(0, 10) + "T12:00:00");
+
+    for (let i = 0; i < PROTECTION_VISITS.length; i++) {
+      const visit = PROTECTION_VISITS[i];
+      const due = addMonths(baseDate, visit.monthOffset);
+      const dueMs = due.getTime();
+
+      // Skip visits already well in the past (>60 days ago)
+      if (dueMs < todayMs - 60 * 24 * 60 * 60 * 1000) continue;
+
+      results.push({
+        assessment: a,
+        visitIndex: i,
+        dueDate: due,
+        isOverdue: dueMs < todayMs,
+        isDueSoon: dueMs >= todayMs && dueMs <= todayMs + soon,
+      });
+      break; // show only the next pending visit per client
+    }
+  }
+
+  return results.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+}
 
 /* chip colours cycling */
 const CHIP_COLORS = [
@@ -180,6 +234,7 @@ export function CalendarScreen({
   }
 
   const plan = detail ? CHECKOUT_PLANS.find(p => p.id === detail.checkout?.planId) : null;
+  const followUps = buildFollowUps(assessments, today);
 
   return (
     <div className="hs-cal-screen">
@@ -307,6 +362,73 @@ export function CalendarScreen({
             );
           });
         })()}
+      </div>
+
+      {/* ── Protection Plan Follow-ups ── */}
+      <div className="hs-cal-followups">
+        <p className="hs-cal-upcoming-label">
+          <Bell size={12} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }} />
+          Protection Plan Follow-ups
+          {followUps.filter(f => f.isOverdue || f.isDueSoon).length > 0 && (
+            <span className="hs-cal-req-badge" style={{ background: "#fef3c7", color: "#b45309" }}>
+              {followUps.filter(f => f.isOverdue || f.isDueSoon).length} need attention
+            </span>
+          )}
+        </p>
+
+        {followUps.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--muted)", padding: "10px 0" }}>
+            No Protection Plan clients with upcoming follow-ups.
+          </p>
+        ) : (
+          <div className="hs-followup-list">
+            {followUps.map(fu => {
+              const visit = PROTECTION_VISITS[fu.visitIndex];
+              const clientFirst = fu.assessment.owner.name.split(" ")[0];
+              const phone = fu.assessment.owner.phone.replace(/\D/g, "");
+              const smsMsg = encodeURIComponent(
+                `Hey ${clientFirst}, this is Steven from HomeShine! It's time for your ${visit.detail} — let's get you scheduled. What works best for you?`
+              );
+              const smsHref = phone ? `sms:${phone}?body=${smsMsg}` : undefined;
+              const statusClass = fu.isOverdue ? "is-overdue" : fu.isDueSoon ? "is-soon" : "";
+
+              return (
+                <div key={`${fu.assessment.id}-${fu.visitIndex}`} className={`hs-followup-row ${statusClass}`}>
+                  <div className="hs-followup-left">
+                    <div className="hs-followup-visit-badge">
+                      {fu.visitIndex + 1}<span>/3</span>
+                    </div>
+                    <div className="hs-followup-info">
+                      <strong>{fu.assessment.owner.name}</strong>
+                      <span className="hs-followup-visit">{visit.label} · {visit.detail}</span>
+                      <span className={`hs-followup-due ${statusClass}`}>
+                        {fu.isOverdue ? "⚠ Overdue · " : ""}
+                        Due {fu.dueDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                      {fu.assessment.owner.phone && (
+                        <span style={{ fontSize: 12, color: "var(--muted)" }}>{fu.assessment.owner.phone}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="hs-followup-actions">
+                    {smsHref && (
+                      <a href={smsHref} className="hs-followup-sms-btn" title="Text client">
+                        <MessageCircle size={14} />
+                        Text
+                      </a>
+                    )}
+                    {fu.assessment.owner.phone && (
+                      <a href={`tel:${fu.assessment.owner.phone}`} className="hs-followup-call-btn" title="Call client">
+                        <Phone size={14} />
+                        Call
+                      </a>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ── Booking requests inbox ── */}

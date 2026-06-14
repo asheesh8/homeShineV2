@@ -46,7 +46,6 @@ function drawHomeShineLogo(ctx: CanvasRenderingContext2D, x: number, y: number, 
   ctx.font = `700 ${size * 0.22}px Georgia, serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  ctx.letterSpacing = `${size * 0.015}px`;
   ctx.fillText("HOME", cx, cy + r * 0.18);
 
   // "Shine" text

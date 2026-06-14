@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ChevronLeft, ChevronRight, Phone, Mail, MapPin, X, RefreshCw, Inbox, Check, XCircle, Bell, MessageCircle } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Phone, Mail, MapPin, X, RefreshCw, Inbox, Check, XCircle, Bell, MessageCircle, CalendarCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/field-app/ui";
 import { CHECKOUT_PLANS } from "@/components/field-app/utils";
@@ -183,13 +183,19 @@ export function CalendarScreen({
     else setCalMonth(m => m + 1);
   }
 
-  /* map date → list of assessments with bookings */
+  /* map date → list of assessments with bookings (initial + follow-up visits) */
   const byDate: Record<string, Assessment[]> = {};
   for (const a of assessments) {
-    if (!a.booking?.date) continue;
-    const d = a.booking.date;
-    if (!byDate[d]) byDate[d] = [];
-    byDate[d].push(a);
+    if (a.booking?.date) {
+      const d = a.booking.date;
+      if (!byDate[d]) byDate[d] = [];
+      byDate[d].push(a);
+    }
+    for (const fu of a.followUpBookings ?? []) {
+      const d = fu.date;
+      if (!byDate[d]) byDate[d] = [];
+      if (!byDate[d].includes(a)) byDate[d].push(a);
+    }
   }
 
   /* confirmed booking requests shown as calendar chips too */
@@ -301,18 +307,24 @@ export function CalendarScreen({
               ].join(" ")}
             >
               <span className="hs-cal-screen-day-num">{day}</span>
-              {jobs.map(a => (
-                <button
-                  key={a.id}
-                  type="button"
-                  className="hs-cal-job-chip"
-                  style={{ "--chip-color": colorMap[a.id] } as React.CSSProperties}
-                  onClick={() => { setDetail(a); setRescheduling(false); }}
-                >
-                  <span className="hs-cal-job-time">{fmt12(a.booking!.time)}</span>
-                  <span className="hs-cal-job-name">{a.owner.name.split(" ")[0]}</span>
-                </button>
-              ))}
+              {jobs.map(a => {
+                const fuBooking = (a.followUpBookings ?? []).find(fu => fu.date === dateStr);
+                const chipBooking = fuBooking ?? a.booking;
+                if (!chipBooking) return null;
+                const isFollowUp = !!fuBooking;
+                return (
+                  <button
+                    key={`${a.id}-${dateStr}`}
+                    type="button"
+                    className={`hs-cal-job-chip ${isFollowUp ? "hs-cal-followup-chip" : ""}`}
+                    style={{ "--chip-color": isFollowUp ? "#7c3aed" : colorMap[a.id] } as React.CSSProperties}
+                    onClick={() => { setDetail(a); setRescheduling(false); }}
+                  >
+                    <span className="hs-cal-job-time">{fmt12(chipBooking.time)}{isFollowUp ? " ↩" : ""}</span>
+                    <span className="hs-cal-job-name">{a.owner.name.split(" ")[0]}</span>
+                  </button>
+                );
+              })}
               {(reqByDate[dateStr] ?? []).map(r => (
                 <button
                   key={r.id}

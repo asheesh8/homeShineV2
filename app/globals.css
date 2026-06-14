@@ -3531,3 +3531,142 @@ h2 {
 .hs-tax-del-btn:hover { color: #ef4444; background: #fef2f2; }
 
 /* (mobile overrides above handle tax + calendar together at 540px) */
+
+/* ── Text-only SMS fallback button in ReachOutSheet ───────────────────── */
+.hs-reachout-text-only-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--bg);
+  border: 1.5px solid var(--line-strong);
+  border-radius: 13px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background 0.12s;
+  width: 100%;
+}
+.hs-reachout-text-only-btn:active { background: var(--line); }
+
+/* ── Follow-up chip style on calendar ────────────────────────────────── */
+.hs-cal-followup-chip {
+  border-left-style: dashed;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET  (481px – 860px)
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (min-width: 481px) and (max-width: 860px) {
+  /* Sheet — wider on tablet */
+  .hs-sheet { border-radius: 16px 16px 0 0; padding: 0 24px 28px; }
+  .hs-reachout-hero { height: 200px; }
+
+  /* Follow-up row — side by side on tablet */
+  .hs-followup-top { gap: 14px; }
+  .hs-followup-actions { flex-direction: row; gap: 8px; }
+
+  /* Calendar — more padding on tablet */
+  .hs-cal-screen { max-width: 760px; padding: 20px 24px 48px; }
+  .hs-cal-screen-cell { min-height: 80px; }
+
+  /* Tax cards — 3 per row on tablet */
+  .hs-tax-cards { grid-template-columns: repeat(3, 1fr); }
+  .hs-tax-screen { max-width: 760px; padding: 20px 24px 48px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — MOBILE  (≤480px)
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  /* ── Sheet ── */
+  .hs-sheet { padding: 0 14px 28px; border-radius: 20px 20px 0 0; }
+  .hs-sheet-handle { margin: 10px auto 16px; }
+
+  /* ── Hero card ── */
+  .hs-reachout-hero { height: 160px; border-radius: 12px; }
+  .hs-reachout-hero-hey { font-size: 18px; }
+  .hs-reachout-hero-sub { font-size: 11px; }
+  .hs-reachout-hero-logo > div { width: 36px !important; height: 36px !important; }
+  .hs-reachout-hero-img-badge { font-size: 10px; padding: 3px 8px; right: 44px; }
+
+  /* ── Client strip ── */
+  .hs-reachout-client-strip { padding: 10px 12px; }
+  .hs-reachout-client-name { font-size: 14px; }
+
+  /* ── Message bubble ── */
+  .hs-reachout-bubble { padding: 11px 13px; border-radius: 14px 14px 4px 14px; max-height: 160px; }
+  .hs-reachout-bubble-text { font-size: 13px; }
+
+  /* ── Extras ── */
+  .hs-reachout-extra-row { padding: 9px 12px; font-size: 12px; }
+
+  /* ── Actions ── */
+  .hs-reachout-actions { gap: 8px; }
+  .hs-reachout-sms-link { padding: 12px 16px; font-size: 14px; }
+  .hs-reachout-copy-btn { padding: 11px 16px; font-size: 13px; }
+  .hs-reachout-text-only-btn { padding: 11px 16px; font-size: 13px; }
+
+  /* ── Follow-up section ── */
+  .hs-cal-followups { margin-top: 18px; }
+  .hs-followup-row { padding: 11px 12px; gap: 8px; }
+  .hs-followup-top { gap: 10px; flex-wrap: wrap; }
+  .hs-followup-visit-badge { width: 34px; height: 34px; font-size: 14px; }
+  .hs-followup-info strong { font-size: 13px; }
+  .hs-followup-visit { font-size: 11px; }
+  .hs-followup-due { font-size: 11px; }
+  .hs-followup-actions { flex-direction: row; gap: 6px; }
+  .hs-followup-sms-btn,
+  .hs-followup-call-btn { padding: 6px 10px; font-size: 11px; }
+  .hs-followup-schedule-btn { font-size: 12px; padding: 8px 10px; }
+
+  /* Follow-up inline scheduler time slots */
+  .hs-followup-scheduler { padding: 11px 12px; }
+  .hs-followup-scheduler .hs-time-slots { gap: 5px; }
+  .hs-followup-scheduler .hs-time-slot { font-size: 11px; padding: 5px 8px; }
+
+  /* ── Calendar screen ── */
+  .hs-cal-screen { padding: 10px 8px 32px; }
+  .hs-cal-screen-grid { gap: 1px; }
+  .hs-cal-screen-cell { min-height: 48px; padding: 3px 2px; }
+
+  /* ── Booking request inbox ── */
+  .hs-cal-req-row { padding: 11px 12px; gap: 8px; }
+  .hs-cal-req-actions { flex-wrap: wrap; gap: 6px; }
+  .hs-cal-req-btn { padding: 6px 10px; font-size: 12px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — DESKTOP  (≥861px)
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (min-width: 861px) {
+  /* Sheet sits centered, not full-width */
+  .hs-sheet-backdrop { align-items: center; }
+  .hs-sheet {
+    border-radius: 20px;
+    max-height: 88vh;
+    padding: 0 28px 32px;
+    margin: 0 auto;
+  }
+  .hs-sheet-handle { display: none; }
+
+  /* Taller hero on desktop */
+  .hs-reachout-hero { height: 220px; }
+
+  /* Follow-up row — actions inline on right */
+  .hs-followup-top { align-items: flex-start; }
+  .hs-followup-actions { flex-direction: column; gap: 6px; min-width: 72px; }
+  .hs-followup-sms-btn,
+  .hs-followup-call-btn { justify-content: center; }
+
+  /* Calendar screen wider on desktop */
+  .hs-cal-screen { max-width: 900px; padding: 24px 32px 56px; }
+  .hs-cal-screen-cell { min-height: 90px; }
+
+  /* Tax screen wider on desktop */
+  .hs-tax-screen { max-width: 860px; padding: 24px 32px 56px; }
+  .hs-tax-cards { grid-template-columns: repeat(4, 1fr); }
+  .hs-tax-quarters { grid-template-columns: repeat(4, 1fr); }
+}

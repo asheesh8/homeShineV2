@@ -109,6 +109,8 @@ export function TaxScreen({
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [assessments, setAssessments] = useState<Assessment[]>(initialAssessments);
+
+  useEffect(() => { setAssessments(initialAssessments); }, [initialAssessments]);
   const [deletingJobId, setDeletingJobId] = useState<string | null>(null);
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState("");

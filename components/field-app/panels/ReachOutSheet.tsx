@@ -169,7 +169,7 @@ export function ReachOutSheet({
           </button>
 
           {smsHref && (
-            <a href={smsHref} className="hs-reachout-copy-btn" style={{ textDecoration: "none", justifyContent: "center" }}>
+            <a href={smsHref} className="hs-reachout-text-only-btn">
               <MessageSquare size={15} /> Text only (no photo)
             </a>
           )}

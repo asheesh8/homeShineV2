@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { X, Copy, MessageSquare, Star, Gift, Check } from "lucide-react";
+import { X, Copy, MessageSquare, Star, Gift, Check, ImageIcon, Loader2 } from "lucide-react";
 import { HomeShineLogo } from "@/components/homeshine-logo";
+import { generateGreetingImage } from "@/lib/generate-greeting-image";
 import type { Assessment } from "@/lib/simple-field";
 
 const GOOGLE_REVIEW_LINK = "https://g.page/r/PLACEHOLDER_REVIEW_LINK/review";
@@ -36,12 +37,15 @@ export function ReachOutSheet({
   assessment: Assessment;
   onClose: () => void;
 }) {
-  const [copied, setCopied] = useState(false);
-  const isFinished = assessment.status === "finished";
-  const firstName = (assessment.owner.name || "").split(" ")[0] || "there";
-  const message = buildMessage(assessment.owner.name || "there", assessment.status);
+  const [copied, setCopied]       = useState(false);
+  const [sharing, setSharing]     = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+
+  const isFinished  = assessment.status === "finished";
+  const firstName   = (assessment.owner.name || "").split(" ")[0] || "there";
+  const message     = buildMessage(assessment.owner.name || "there", assessment.status);
   const clientPhone = cleanPhone(assessment.owner.phone || "");
-  const smsHref = clientPhone
+  const smsHref     = clientPhone
     ? `sms:${clientPhone}?body=${encodeURIComponent(message)}`
     : undefined;
 
@@ -52,12 +56,43 @@ export function ReachOutSheet({
     });
   }
 
+  async function handleShareWithImage() {
+    setSharing(true);
+    setShareError(null);
+    try {
+      const file = await generateGreetingImage(firstName);
+
+      // Use Web Share API level 2 (file sharing) — supported on iOS Safari 15+ and Android Chrome
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], text: message });
+      } else if (navigator.share) {
+        // Fallback: share text only if file sharing not supported
+        await navigator.share({ text: message });
+      } else {
+        // Desktop fallback: download the image + copy text
+        const url = URL.createObjectURL(file);
+        const a   = document.createElement("a");
+        a.href     = url;
+        a.download = file.name;
+        a.click();
+        URL.revokeObjectURL(url);
+        handleCopy();
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        setShareError("Couldn't open share sheet — try Copy instead.");
+      }
+    } finally {
+      setSharing(false);
+    }
+  }
+
   return (
     <div className="hs-sheet-backdrop" onClick={onClose}>
       <div className="hs-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="hs-sheet-handle" />
 
-        {/* Hero */}
+        {/* Hero — preview of the personalized image */}
         <div className="hs-reachout-hero">
           <img src="/homeshine-truck.png" alt="HomeShine truck" className="hs-reachout-hero-img" />
           <div className="hs-reachout-hero-overlay" />
@@ -70,6 +105,10 @@ export function ReachOutSheet({
             <span className="hs-reachout-hero-sub">
               {isFinished ? "Thank you for choosing HomeShine" : "HomeShine is on the way"}
             </span>
+          </div>
+          {/* "This image will be sent" badge */}
+          <div className="hs-reachout-hero-img-badge">
+            <ImageIcon size={11} /> personalized image included
           </div>
         </div>
 
@@ -93,7 +132,6 @@ export function ReachOutSheet({
             <span className="hs-reachout-bubble-from">from Steven · HomeShine</span>
           </div>
           <div className="hs-reachout-bubble">
-            <div className="hs-reachout-bubble-tail" />
             <p className="hs-reachout-bubble-text">{message}</p>
           </div>
         </div>
@@ -113,14 +151,29 @@ export function ReachOutSheet({
           </div>
         )}
 
+        {shareError && (
+          <p className="hs-reachout-share-error">{shareError}</p>
+        )}
+
         {/* Actions */}
         <div className="hs-reachout-actions">
-          {smsHref ? (
-            <a href={smsHref} className="hs-reachout-sms-link">
-              <MessageSquare size={16} />
-              Send via SMS
+          <button
+            type="button"
+            className="hs-reachout-sms-link"
+            onClick={handleShareWithImage}
+            disabled={sharing}
+          >
+            {sharing
+              ? <><Loader2 size={16} className="hs-spin" /> Preparing…</>
+              : <><MessageSquare size={16} /> Send with photo</>}
+          </button>
+
+          {smsHref && (
+            <a href={smsHref} className="hs-reachout-copy-btn" style={{ textDecoration: "none", justifyContent: "center" }}>
+              <MessageSquare size={15} /> Text only (no photo)
             </a>
-          ) : null}
+          )}
+
           <button type="button" className="hs-reachout-copy-btn" onClick={handleCopy}>
             {copied ? <><Check size={15} /> Copied!</> : <><Copy size={15} /> Copy message</>}
           </button>

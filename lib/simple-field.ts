@@ -77,6 +77,7 @@ export type Assessment = {
   aiSummary: AiSummary | null;
   checkout?: CheckoutData | null;
   booking?: BookingData | null;
+  followUpBookings?: BookingData[];
   sections: Record<string, SectionValue | null>;
 };
 

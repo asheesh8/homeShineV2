@@ -19,6 +19,7 @@ export type AssessmentRow = {
 type PersistedSections = Record<string, SectionValue | null> & {
   __checkout?: CheckoutData | null;
   __booking?: BookingData | null;
+  __followUpBookings?: BookingData[];
 };
 
 function normalizeOwner(row: AssessmentRow): Owner {
@@ -34,7 +35,7 @@ function normalizeOwner(row: AssessmentRow): Owner {
 
 export function mapRowToAssessment(row: AssessmentRow): Assessment {
   const persistedSections = (row.sections ?? {}) as PersistedSections;
-  const { __checkout: checkout = null, __booking: booking = null, ...sections } = persistedSections;
+  const { __checkout: checkout = null, __booking: booking = null, __followUpBookings: followUpBookings = [], ...sections } = persistedSections;
 
   return {
     id: row.id,
@@ -46,6 +47,7 @@ export function mapRowToAssessment(row: AssessmentRow): Assessment {
     aiSummary: row.ai_summary ?? null,
     checkout,
     booking,
+    followUpBookings: followUpBookings ?? [],
     sections,
   };
 }
@@ -55,6 +57,7 @@ export function mapAssessmentToRow(assessment: Assessment): AssessmentRow {
     ...assessment.sections,
     __checkout: assessment.checkout ?? null,
     __booking: assessment.booking ?? null,
+    __followUpBookings: assessment.followUpBookings ?? [],
   } as PersistedSections;
 
   return {

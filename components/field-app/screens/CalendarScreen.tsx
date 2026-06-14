@@ -84,13 +84,14 @@ function buildFollowUps(assessments: Assessment[], today: Date): FollowUp[] {
     const baseDateStr = a.booking?.date ?? a.createdAt;
     if (!baseDateStr) continue;
     const baseDate = new Date(baseDateStr.slice(0, 10) + "T12:00:00");
+    // visits 1+ are tracked in followUpBookings by index (0 = initial, 1 = month 12, 2 = month 18)
+    const scheduledCount = (a.followUpBookings?.length ?? 0) + 1; // +1 for the initial booking
 
     for (let i = 0; i < PROTECTION_VISITS.length; i++) {
+      if (i < scheduledCount) continue; // already scheduled
       const visit = PROTECTION_VISITS[i];
       const due = addMonths(baseDate, visit.monthOffset);
       const dueMs = due.getTime();
-
-      // Skip visits already well in the past (>60 days ago)
       if (dueMs < todayMs - 60 * 24 * 60 * 60 * 1000) continue;
 
       results.push({
@@ -100,7 +101,7 @@ function buildFollowUps(assessments: Assessment[], today: Date): FollowUp[] {
         isOverdue: dueMs < todayMs,
         isDueSoon: dueMs >= todayMs && dueMs <= todayMs + soon,
       });
-      break; // show only the next pending visit per client
+      break; // only show next unscheduled visit
     }
   }
 
@@ -235,6 +236,27 @@ export function CalendarScreen({
 
   const plan = detail ? CHECKOUT_PLANS.find(p => p.id === detail.checkout?.planId) : null;
   const followUps = buildFollowUps(assessments, today);
+
+  /* inline follow-up scheduling */
+  const [schedulingId, setSchedulingId] = useState<string | null>(null); // `${assessmentId}-${visitIndex}`
+  const [fuDate, setFuDate] = useState("");
+  const [fuTime, setFuTime] = useState("");
+  const [fuSaving, setFuSaving] = useState(false);
+
+  async function saveFollowUp(fu: FollowUp) {
+    if (!fuDate || !fuTime) return;
+    setFuSaving(true);
+    const visit = PROTECTION_VISITS[fu.visitIndex];
+    const newBooking: BookingData = { date: fuDate, time: fuTime, visitLabel: visit.detail };
+    const updatedFollowUps = [...(fu.assessment.followUpBookings ?? []), newBooking];
+    const updated = { ...fu.assessment, followUpBookings: updatedFollowUps, updatedAt: new Date().toISOString() };
+    try {
+      const saved = await updateAssessment(updated);
+      onAssessmentsChange(saved);
+      setSchedulingId(null);
+    } catch { /* ignore */ }
+    setFuSaving(false);
+  }
 
   return (
     <div className="hs-cal-screen">
@@ -384,6 +406,7 @@ export function CalendarScreen({
           <div className="hs-followup-list">
             {followUps.map(fu => {
               const visit = PROTECTION_VISITS[fu.visitIndex];
+              const rowKey = `${fu.assessment.id}-${fu.visitIndex}`;
               const clientFirst = fu.assessment.owner.name.split(" ")[0];
               const phone = fu.assessment.owner.phone.replace(/\D/g, "");
               const smsMsg = encodeURIComponent(
@@ -391,39 +414,88 @@ export function CalendarScreen({
               );
               const smsHref = phone ? `sms:${phone}?body=${smsMsg}` : undefined;
               const statusClass = fu.isOverdue ? "is-overdue" : fu.isDueSoon ? "is-soon" : "";
+              const isScheduling = schedulingId === rowKey;
 
               return (
-                <div key={`${fu.assessment.id}-${fu.visitIndex}`} className={`hs-followup-row ${statusClass}`}>
-                  <div className="hs-followup-left">
-                    <div className="hs-followup-visit-badge">
-                      {fu.visitIndex + 1}<span>/3</span>
+                <div key={rowKey} className={`hs-followup-row ${statusClass}`}>
+                  {/* top row: identity + contact actions */}
+                  <div className="hs-followup-top">
+                    <div className="hs-followup-left">
+                      <div className="hs-followup-visit-badge">
+                        {fu.visitIndex + 1}<span>/3</span>
+                      </div>
+                      <div className="hs-followup-info">
+                        <strong>{fu.assessment.owner.name}</strong>
+                        <span className="hs-followup-visit">{visit.label} · {visit.detail}</span>
+                        <span className={`hs-followup-due ${statusClass}`}>
+                          {fu.isOverdue ? "⚠ Overdue · " : ""}
+                          Due {fu.dueDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </span>
+                        {fu.assessment.owner.phone && (
+                          <span style={{ fontSize: 12, color: "var(--muted)" }}>{fu.assessment.owner.phone}</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="hs-followup-info">
-                      <strong>{fu.assessment.owner.name}</strong>
-                      <span className="hs-followup-visit">{visit.label} · {visit.detail}</span>
-                      <span className={`hs-followup-due ${statusClass}`}>
-                        {fu.isOverdue ? "⚠ Overdue · " : ""}
-                        Due {fu.dueDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                      </span>
+                    <div className="hs-followup-actions">
+                      {smsHref && (
+                        <a href={smsHref} className="hs-followup-sms-btn" title="Text client">
+                          <MessageCircle size={14} /> Text
+                        </a>
+                      )}
                       {fu.assessment.owner.phone && (
-                        <span style={{ fontSize: 12, color: "var(--muted)" }}>{fu.assessment.owner.phone}</span>
+                        <a href={`tel:${fu.assessment.owner.phone}`} className="hs-followup-call-btn" title="Call client">
+                          <Phone size={14} /> Call
+                        </a>
                       )}
                     </div>
                   </div>
-                  <div className="hs-followup-actions">
-                    {smsHref && (
-                      <a href={smsHref} className="hs-followup-sms-btn" title="Text client">
-                        <MessageCircle size={14} />
-                        Text
-                      </a>
-                    )}
-                    {fu.assessment.owner.phone && (
-                      <a href={`tel:${fu.assessment.owner.phone}`} className="hs-followup-call-btn" title="Call client">
-                        <Phone size={14} />
-                        Call
-                      </a>
-                    )}
-                  </div>
+
+                  {/* schedule button / inline picker */}
+                  {!isScheduling ? (
+                    <button
+                      type="button"
+                      className="hs-followup-schedule-btn"
+                      onClick={() => { setSchedulingId(rowKey); setFuDate(""); setFuTime(""); }}
+                    >
+                      <RefreshCw size={13} /> Schedule this visit
+                    </button>
+                  ) : (
+                    <div className="hs-followup-scheduler">
+                      <p className="hs-followup-scheduler-label">Pick a date &amp; time for {visit.detail}</p>
+                      <input
+                        type="date"
+                        className="hs-cal-date-input"
+                        value={fuDate}
+                        min={todayStr}
+                        onChange={e => setFuDate(e.target.value)}
+                      />
+                      <div className="hs-time-slots" style={{ flexWrap: "wrap", marginTop: 10 }}>
+                        {ALL_SLOTS.map(t => (
+                          <button
+                            key={t}
+                            type="button"
+                            className={`hs-time-slot ${fuTime === t ? "is-selected" : ""}`}
+                            onClick={() => setFuTime(t)}
+                          >
+                            {fmt12(t)}
+                          </button>
+                        ))}
+                      </div>
+                      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                        <Button type="button" variant="secondary" onClick={() => setSchedulingId(null)} style={{ flex: 1 }}>
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          disabled={!fuDate || !fuTime || fuSaving}
+                          style={{ flex: 1 }}
+                          onClick={() => saveFollowUp(fu)}
+                        >
+                          {fuSaving ? "Saving…" : "Confirm visit"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

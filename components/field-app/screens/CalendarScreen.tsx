@@ -419,8 +419,8 @@ export function CalendarScreen({
             {followUps.map(fu => {
               const visit = PROTECTION_VISITS[fu.visitIndex];
               const rowKey = `${fu.assessment.id}-${fu.visitIndex}`;
-              const clientFirst = fu.assessment.owner.name.split(" ")[0];
-              const phone = fu.assessment.owner.phone.replace(/\D/g, "");
+              const clientFirst = (fu.assessment.owner.name || "Client").split(" ")[0];
+              const phone = (fu.assessment.owner.phone || "").replace(/\D/g, "");
               const smsMsg = encodeURIComponent(
                 `Hey ${clientFirst}, this is Steven from HomeShine! It's time for your ${visit.detail} — let's get you scheduled. What works best for you?`
               );

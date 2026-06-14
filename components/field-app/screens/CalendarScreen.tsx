@@ -352,11 +352,17 @@ export function CalendarScreen({
             .filter(a => a.booking?.date?.startsWith(prefix) && a.booking.date >= todayStr)
             .map(a => ({ type: "assessment" as const, sortKey: a.booking!.date + a.booking!.time, a }));
 
+          const upcomingFollowUps = assessments.flatMap(a =>
+            (a.followUpBookings ?? [])
+              .filter(fu => fu.date.startsWith(prefix) && fu.date >= todayStr)
+              .map(fu => ({ type: "followup" as const, sortKey: fu.date + fu.time, a, fu }))
+          );
+
           const upcomingRequests = confirmedRequests
             .filter(r => r.requestedDate.startsWith(prefix) && r.requestedDate >= todayStr)
             .map(r => ({ type: "request" as const, sortKey: r.requestedDate + r.requestedTime, r }));
 
-          const all = [...upcomingAssessments, ...upcomingRequests]
+          const all = [...upcomingAssessments, ...upcomingFollowUps, ...upcomingRequests]
             .sort((x, y) => x.sortKey.localeCompare(y.sortKey));
 
           if (!all.length) return (
@@ -364,6 +370,20 @@ export function CalendarScreen({
           );
 
           return all.map(item => {
+            if (item.type === "followup") {
+              const { a, fu } = item;
+              return (
+                <div key={`${a.id}-${fu.date}-${fu.time}`} className="hs-cal-upcoming-row" style={{ cursor: "default" }}>
+                  <span className="hs-cal-upcoming-dot" style={{ background: colorMap[a.id], outline: "2px solid var(--green)", outlineOffset: 1 }} />
+                  <div className="hs-cal-upcoming-info">
+                    <strong>{a.owner.name}</strong>
+                    <span>{fmtDateLong(fu.date)} at {fmt12(fu.time)}</span>
+                    <span className="hs-cal-upcoming-plan" style={{ color: "var(--green)" }}>↩ {fu.visitLabel ?? "Protection Plan Visit"}</span>
+                  </div>
+                  <span className="hs-cal-upcoming-addr">{a.owner.city}</span>
+                </div>
+              );
+            }
             if (item.type === "assessment") {
               const a = item.a;
               const p = CHECKOUT_PLANS.find(pl => pl.id === a.checkout?.planId);

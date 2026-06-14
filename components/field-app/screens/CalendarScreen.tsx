@@ -450,12 +450,12 @@ export function CalendarScreen({
                     </div>
                     <div className="hs-followup-actions">
                       {smsHref && (
-                        <a href={smsHref} className="hs-followup-sms-btn" title="Text client">
+                        <a href={smsHref} className="hs-followup-sms-btn" title="Text client" target="_blank" rel="noopener noreferrer">
                           <MessageCircle size={14} /> Text
                         </a>
                       )}
                       {fu.assessment.owner.phone && (
-                        <a href={`tel:${fu.assessment.owner.phone}`} className="hs-followup-call-btn" title="Call client">
+                        <a href={`tel:${fu.assessment.owner.phone}`} className="hs-followup-call-btn" title="Call client" target="_blank" rel="noopener noreferrer">
                           <Phone size={14} /> Call
                         </a>
                       )}
@@ -677,9 +677,9 @@ export function CalendarScreen({
             <div className="hs-cal-drawer-body">
               {/* Booking time */}
               <div className="hs-cal-drawer-time-block">
-                <p className="hs-cal-drawer-time-date">{fmtDateLong(detail.booking!.date)}</p>
+                <p className="hs-cal-drawer-time-date">{detail.booking ? fmtDateLong(detail.booking.date) : "—"}</p>
                 <p className="hs-cal-drawer-time-time">
-                  {fmt12(detail.booking!.time)}
+                  {detail.booking ? fmt12(detail.booking.time) : ""}
                   {detail.booking?.duration
                     ? ` → ${fmt12(addMinutes(detail.booking.time, detail.booking.duration))}`
                     : ""}

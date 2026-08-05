@@ -9,7 +9,7 @@ export function AppHeader({ session, onLogout }: { session: Session | null; onLo
   return (
     <header className="hs-app-header">
       <div className="hs-app-header-inner">
-        <Link href="/" className="hs-brand">
+        <Link href="/admin" className="hs-brand">
           <HomeShineLogo size={48} />
           <span>
             <strong>HomeSHINE</strong>
@@ -18,28 +18,28 @@ export function AppHeader({ session, onLogout }: { session: Session | null; onLo
         </Link>
 
         <nav className="hs-nav" aria-label="App navigation">
-          <Link href="/promos">
+          <Link href="/admin/promos">
             <Sparkles size={16} />
             <span>Promos</span>
           </Link>
-          <Link href="/about">
+          <Link href="/admin/about">
             <Info size={16} />
             <span>About</span>
           </Link>
           {session?.id === "steven" && (
             <>
-              <Link href="/certificate">
+              <Link href="/admin/certificate">
                 <Award size={16} />
                 <span>Certificate</span>
               </Link>
-              <Link href="/market">
+              <Link href="/admin/market">
                 <BarChart2 size={16} />
                 <span>Market</span>
               </Link>
             </>
           )}
           {session?.id === "beth" && (
-            <Link href="/reasoning">
+            <Link href="/admin/reasoning">
               <Lightbulb size={16} />
               <span>Plans</span>
             </Link>

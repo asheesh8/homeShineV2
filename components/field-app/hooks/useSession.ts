@@ -24,8 +24,11 @@ export function useSession() {
 
   // Load from localStorage after mount to avoid SSR hydration mismatch
   useEffect(() => {
-    const stored = loadSession();
-    if (stored) setSession(stored);
+    const id = window.setTimeout(() => {
+      const stored = loadSession();
+      if (stored) setSession(stored);
+    }, 0);
+    return () => window.clearTimeout(id);
   }, []);
 
   useEffect(() => {

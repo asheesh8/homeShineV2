@@ -91,15 +91,15 @@ export default function AboutPage() {
               documentation, and care that lasts.
             </p>
             <div className="about-hero-ctas">
-              <a href="tel:+18028001234" className="about-cta-primary">
+              <a href="tel:+18023919977" className="about-cta-primary">
                 <PhoneCall size={18} />
                 Call us
               </a>
-              <Link href="/" className="about-cta-secondary">
+              <Link href="/admin" className="about-cta-secondary">
                 <ClipboardList size={18} />
                 Field app
               </Link>
-              <Link href="/promos" className="about-cta-secondary">
+              <Link href="/admin/promos" className="about-cta-secondary">
                 <Sparkles size={18} />
                 View offers
               </Link>
@@ -227,11 +227,11 @@ export default function AboutPage() {
               clear plan — no pressure, no surprises.
             </p>
             <div className="about-hero-ctas" style={{ justifyContent: "center" }}>
-              <a href="tel:+18028001234" className="about-cta-primary about-cta-large">
+              <a href="tel:+18023919977" className="about-cta-primary about-cta-large">
                 <PhoneCall size={20} />
                 Call HomeSHINE
               </a>
-              <Link href="/" className="about-cta-secondary about-cta-large">
+              <Link href="/admin" className="about-cta-secondary about-cta-large">
                 <ClipboardList size={20} />
                 Open Field App
               </Link>

@@ -2,25 +2,18 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const viewport: Viewport = {
-  themeColor: "#182638",
+  themeColor: "#0C1218",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export const metadata: Metadata = {
-  title: "HomeSHINE Field App",
-  description: "Field assessment app for HomeSHINE exterior care",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "HomeSHINE",
+  title: {
+    default: "HomeSHINE — Soft Washing & Power Washing in Chittenden County, VT",
+    template: "%s — HomeSHINE",
   },
-  formatDetection: {
-    telephone: false,
-  },
+  description:
+    "Soft washing and power washing for Vermont homes. We match the method to the surface so roofs, siding, and wood get chemistry — not force.",
 };
 
 export default function RootLayout({

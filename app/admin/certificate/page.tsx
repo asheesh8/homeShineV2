@@ -782,7 +782,7 @@ export default function CertificatePage() {
                 </div>
               </div>
             </div>
-            <Link href="/" style={navPillStyle}>
+            <Link href="/admin" style={navPillStyle}>
               ← Field App
             </Link>
           </div>

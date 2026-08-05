@@ -110,7 +110,10 @@ export function TaxScreen({
   const [year, setYear] = useState(now.getFullYear());
   const [assessments, setAssessments] = useState<Assessment[]>(initialAssessments);
 
-  useEffect(() => { setAssessments(initialAssessments); }, [initialAssessments]);
+  useEffect(() => {
+    const id = window.setTimeout(() => setAssessments(initialAssessments), 0);
+    return () => window.clearTimeout(id);
+  }, [initialAssessments]);
   const [deletingJobId, setDeletingJobId] = useState<string | null>(null);
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState("");
@@ -135,14 +138,23 @@ export function TaxScreen({
   const [filingStatus] = useState<"single" | "mfj">("single"); // MVP: single
 
   useEffect(() => {
-    setLoadingExp(true);
-    fetch(`/api/expenses?year=${year}`)
-      .then(r => r.json())
-      .then((d: Expense[] | { error: string }) => {
-        if (Array.isArray(d)) setExpenses(d);
-      })
-      .catch(() => {})
-      .finally(() => setLoadingExp(false));
+    let cancelled = false;
+    const id = window.setTimeout(() => {
+      setLoadingExp(true);
+      fetch(`/api/expenses?year=${year}`)
+        .then(r => r.json())
+        .then((d: Expense[] | { error: string }) => {
+          if (!cancelled && Array.isArray(d)) setExpenses(d);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!cancelled) setLoadingExp(false);
+        });
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(id);
+    };
   }, [year]);
 
   /* ── revenue calculation ── */

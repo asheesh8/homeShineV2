@@ -299,7 +299,7 @@ export function receiptDocument(assessment: Assessment) {
         </div>` : ""}
       </div>
       <div class="footer">
-        <p>Thank you for choosing <strong>HomeSHINE</strong>.<br>Questions? Contact us at <strong>homeshine.vt@gmail.com</strong> or call <strong>(802) 555-0100</strong>.</p>
+        <p>Thank you for choosing <strong>HomeSHINE</strong>.<br>Questions? Contact us at <strong>steven@homeshinevt.com</strong> or call <strong>802-391-9977</strong>.</p>
       </div>
     </div>`;
 
@@ -1311,7 +1311,7 @@ export function clientPacketDocument(assessment: Assessment) {
 
       </div>
       <div class="footer">
-        <p>Thank you for choosing <strong>HomeSHINE</strong>. Questions? <strong>homeshine.vt@gmail.com</strong></p>
+        <p>Thank you for choosing <strong>HomeSHINE</strong>. Questions? <strong>steven@homeshinevt.com</strong></p>
       </div>
     </div>`;
 

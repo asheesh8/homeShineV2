@@ -52,7 +52,7 @@ export default function PromosPage() {
               </div>
             </div>
           </div>
-          <Link href="/" style={{ border: "1px solid rgba(255,255,255,.35)", borderRadius: 14, background: "rgba(255,255,255,.08)", color: "white", padding: "10px 16px", fontSize: 15, fontWeight: 700, textDecoration: "none" }}>
+          <Link href="/admin" style={{ border: "1px solid rgba(255,255,255,.35)", borderRadius: 14, background: "rgba(255,255,255,.08)", color: "white", padding: "10px 16px", fontSize: 15, fontWeight: 700, textDecoration: "none" }}>
             Field App
           </Link>
         </div>

@@ -48,7 +48,7 @@ export function Step1Property({
             <FieldLabel>Phone *</FieldLabel>
             <TextInput
               type="tel"
-              placeholder="(802) 555-0100"
+              placeholder="802-391-9977"
               value={owner.phone}
               onChange={(e) => onOwnerChange("phone", e.target.value)}
               autoComplete="off"

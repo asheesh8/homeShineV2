@@ -76,7 +76,7 @@ export function Step3Review({
       ? `  Deposit today: ${money(breakdown.depositAmount)}\n  Then ${breakdown.months} monthly payments of ${moneyDecimal(breakdown.monthlyAmount)}/mo`
       : `  Total: ${moneyDecimal(total)} (pay in full)`;
     const body = encodeURIComponent(
-      `Hi ${firstName},\n\nThank you for letting us assess your property at ${formatOwnerAddress(client.owner)}.\n\nHere's your service quote:\n\n  Plan: ${plan?.name ?? "To be confirmed"}\n  List price: ${money(subtotal)}\n${discountLine}  Tax (${taxDesc}): ${moneyDecimal(taxAmount)}\n${paymentLine}\n\nI'll follow up shortly with the full client packet and next steps.\n\nBest,\nSteven Maestas\nHomeSHINE\n(802) 555-0100`
+      `Hi ${firstName},\n\nThank you for letting us assess your property at ${formatOwnerAddress(client.owner)}.\n\nHere's your service quote:\n\n  Plan: ${plan?.name ?? "To be confirmed"}\n  List price: ${money(subtotal)}\n${discountLine}  Tax (${taxDesc}): ${moneyDecimal(taxAmount)}\n${paymentLine}\n\nI'll follow up shortly with the full client packet and next steps.\n\nBest,\nSteven Maestas\nHomeSHINE\n802-391-9977`
     );
     window.open(`mailto:${client.owner.email}?subject=${subject}&body=${body}`);
   }

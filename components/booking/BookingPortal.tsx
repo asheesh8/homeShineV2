@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, CheckCircle2, CalendarDays, Clock, Home, MessageSquare, User } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle2, CalendarDays, Home, MessageSquare, User, type LucideIcon } from "lucide-react";
 
 /* ── types ─────────────────────────────────────────────────────────────── */
 
@@ -20,6 +20,14 @@ type FormData = {
   message: string;
 };
 
+type ServiceOption = {
+  id: Exclude<FormData["serviceType"], "">;
+  label: string;
+  duration: string;
+  desc: string;
+  icon: LucideIcon;
+};
+
 /* ── constants ──────────────────────────────────────────────────────────── */
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -28,20 +36,20 @@ const DAYS_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const MORNING_SLOTS   = ["08:00","09:00","10:00","11:00"];
 const AFTERNOON_SLOTS = ["13:00","14:00","15:00","16:00"];
 
-const SERVICE_OPTIONS = [
+const SERVICE_OPTIONS: ServiceOption[] = [
   {
     id: "consultation" as const,
     label: "Free Consultation",
     duration: "~45 min",
     desc: "Steven visits your property, walks through what needs attention, and gives you a no-pressure quote.",
-    icon: "💬",
+    icon: MessageSquare,
   },
   {
     id: "assessment" as const,
     label: "Full Home Assessment",
     duration: "~2 hr",
     desc: "A detailed inspection of every exterior surface with a written report, AI-powered recommendations, and a full service plan.",
-    icon: "🏠",
+    icon: Home,
   },
 ];
 
@@ -103,6 +111,8 @@ export function BookingPortal() {
 
   /* set of dates with at least one booking (for calendar dots) */
   const busyDates = new Set(bookedSlots.map(s => s.date));
+  const selectedService = SERVICE_OPTIONS.find(s => s.id === form.serviceType);
+  const SelectedServiceIcon = selectedService?.icon ?? MessageSquare;
 
   /* calendar grid */
   const firstDay    = new Date(calYear, calMonth, 1).getDay();
@@ -166,11 +176,11 @@ export function BookingPortal() {
         </p>
         <div className="bp-done-summary">
           <p><strong>{fmtDateLong(form.date)}</strong></p>
-          <p>{fmt12(form.time)} · {SERVICE_OPTIONS.find(s => s.id === form.serviceType)?.label}</p>
+          <p>{fmt12(form.time)} · {selectedService?.label}</p>
           <p style={{ color: "var(--bp-muted)", marginTop: 4 }}>{form.name} · {form.phone}</p>
         </div>
         <p className="bp-done-note">
-          Questions? Call or text <a href="tel:+18025550100">(802) 555-0100</a> or email <a href="mailto:homeshine.vt@gmail.com">homeshine.vt@gmail.com</a>
+          Questions? Call or text <a href="tel:+18023919977">802-391-9977</a> or email <a href="mailto:steven@homeshinevt.com">steven@homeshinevt.com</a>
         </p>
       </div>
     );
@@ -197,22 +207,27 @@ export function BookingPortal() {
             <p>Pick the type of visit you&rsquo;d like to schedule.</p>
           </div>
           <div className="bp-service-grid">
-            {SERVICE_OPTIONS.map(opt => (
-              <button
-                key={opt.id}
-                type="button"
-                className={`bp-service-card ${form.serviceType === opt.id ? "is-selected" : ""}`}
-                onClick={() => { patch({ serviceType: opt.id }); setStep("datetime"); }}
-              >
-                <span className="bp-service-icon">{opt.icon}</span>
-                <div>
-                  <p className="bp-service-label">{opt.label}</p>
-                  <p className="bp-service-duration">{opt.duration}</p>
-                  <p className="bp-service-desc">{opt.desc}</p>
-                </div>
-                {form.serviceType === opt.id && <span className="bp-service-check">✓</span>}
-              </button>
-            ))}
+            {SERVICE_OPTIONS.map(opt => {
+              const Icon = opt.icon;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  className={`bp-service-card ${form.serviceType === opt.id ? "is-selected" : ""}`}
+                  onClick={() => { patch({ serviceType: opt.id }); setStep("datetime"); }}
+                >
+                  <span className="bp-service-icon">
+                    <Icon size={24} />
+                  </span>
+                  <div>
+                    <p className="bp-service-label">{opt.label}</p>
+                    <p className="bp-service-duration">{opt.duration}</p>
+                    <p className="bp-service-desc">{opt.desc}</p>
+                  </div>
+                  {form.serviceType === opt.id && <span className="bp-service-check">✓</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -326,7 +341,7 @@ export function BookingPortal() {
             <div className="bp-form-row two-col">
               <div className="bp-field">
                 <label className="bp-label">Phone *</label>
-                <input className="bp-input" type="tel" placeholder="(802) 555-0100" value={form.phone}
+                <input className="bp-input" type="tel" placeholder="802-391-9977" value={form.phone}
                   onChange={e => patch({ phone: e.target.value })} />
               </div>
               <div className="bp-field">
@@ -395,10 +410,10 @@ export function BookingPortal() {
               </div>
             </div>
             <div className="bp-confirm-row">
-              <span className="bp-confirm-emoji">{SERVICE_OPTIONS.find(s=>s.id===form.serviceType)?.icon}</span>
+              <SelectedServiceIcon size={16} className="bp-confirm-icon"/>
               <div>
                 <p className="bp-confirm-label">Service</p>
-                <p className="bp-confirm-val">{Service_OPTIONS_find_label(form.serviceType)}</p>
+                <p className="bp-confirm-val">{selectedService?.label ?? form.serviceType}</p>
               </div>
             </div>
             <div className="bp-confirm-row">
@@ -443,8 +458,4 @@ export function BookingPortal() {
       )}
     </div>
   );
-}
-
-function Service_OPTIONS_find_label(id: string) {
-  return SERVICE_OPTIONS.find(s => s.id === id)?.label ?? id;
 }

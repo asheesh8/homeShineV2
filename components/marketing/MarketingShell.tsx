@@ -19,9 +19,11 @@ export function MarketingShell({
   current,
   dark = false,
 }: MarketingShellProps) {
+  const pageClass = current ? `page-${current.toLowerCase().replace(/\s+/g, "-")}` : "page-home";
   const shellClassName = [
     "hs-site",
     "hs-page-shell",
+    pageClass,
     backgroundSrc ? "has-bg" : "",
     dark ? "is-dark" : "",
   ].filter(Boolean).join(" ");

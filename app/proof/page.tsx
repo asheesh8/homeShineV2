@@ -10,7 +10,11 @@ export const metadata: Metadata = {
 
 export default function ProofPage() {
   return (
-    <MarketingShell current="Proof">
+    <MarketingShell
+      current="Proof"
+      backgroundSrc="/promos/steven-cleaning.jpeg"
+      backgroundAlt="HomeSHINE technician cleaning a residential roof"
+    >
       <section className="hs-screen-layout hs-proof-layout">
         <div className="hs-screen-copy">
           <p className="hs-site-kicker">Real field proof</p>

@@ -6524,6 +6524,17 @@ h2 {
   overflow: hidden;
 }
 
+.page-proof .hs-reveal {
+  min-height: 560px;
+}
+
+.page-proof .hs-reveal-stage,
+.hs-page-shell.page-proof .hs-reveal-stage {
+  height: auto;
+  min-height: 560px;
+  aspect-ratio: 4 / 3;
+}
+
 @media (max-width: 1040px) {
   .hs-page-nav,
   .hs-home-screen,
@@ -6594,5 +6605,284 @@ h2 {
 
   .hs-book-panel {
     width: 100%;
+  }
+
+  .page-proof .hs-reveal {
+    width: 100%;
+    min-height: 0;
+  }
+
+  .page-proof .hs-reveal-stage,
+  .hs-page-shell.page-proof .hs-reveal-stage {
+    width: 100%;
+    min-height: 0;
+    aspect-ratio: 0.86 / 1;
+  }
+}
+
+/* Immersive scroll pass: keep the site cinematic without trapping every page in one viewport. */
+.hs-page-shell {
+  display: block;
+  height: auto;
+  min-height: 100dvh;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.hs-page-bg {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  object-fit: cover;
+}
+
+.hs-page-shade {
+  position: fixed;
+  inset: 0;
+}
+
+.hs-page-nav {
+  position: sticky;
+  top: 0;
+  min-height: 92px;
+  background: rgba(7, 16, 24, 0.32);
+  backdrop-filter: blur(14px);
+}
+
+.hs-page-stage {
+  min-height: calc(100dvh - 92px);
+  padding: clamp(36px, 6vh, 76px) 0 clamp(58px, 8vh, 104px);
+}
+
+.hs-home-screen,
+.hs-screen-layout,
+.hs-book-screen {
+  height: auto;
+  min-height: calc(100dvh - 92px - clamp(94px, 14vh, 180px));
+  overflow: visible;
+}
+
+.hs-screen-layout,
+.hs-book-screen {
+  align-items: start;
+}
+
+.hs-home-screen {
+  align-content: end;
+}
+
+.hs-compact-grid,
+.hs-plan-compact-grid,
+.hs-faq-compact-grid,
+.hs-contact-compact {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  align-self: start;
+  align-content: start;
+}
+
+.hs-services-compact,
+.hs-plan-compact-grid,
+.hs-faq-compact-grid {
+  grid-template-rows: none;
+}
+
+.hs-copy-media {
+  width: min(100%, 430px);
+  aspect-ratio: 4 / 3;
+  background: transparent;
+  overflow: hidden;
+}
+
+.hs-copy-media img {
+  object-fit: cover;
+  object-position: center;
+  padding: 0;
+}
+
+.page-home .hs-page-bg,
+.page-contact .hs-page-bg {
+  object-position: 50% 48%;
+}
+
+.page-services .hs-page-bg,
+.page-proof .hs-page-bg {
+  object-position: 48% 50%;
+}
+
+.page-plans .hs-page-bg,
+.page-faq .hs-page-bg,
+.page-book .hs-page-bg {
+  object-position: 50% 52%;
+}
+
+.page-contact .hs-copy-media {
+  aspect-ratio: 16 / 9;
+}
+
+.page-book .hs-copy-media {
+  aspect-ratio: 16 / 9;
+}
+
+.page-services .hs-copy-media img,
+.page-proof .hs-copy-media img {
+  object-position: 50% 42%;
+}
+
+.page-contact .hs-copy-media img {
+  object-position: 50% 50%;
+}
+
+.page-book .hs-copy-media img,
+.page-plans .hs-copy-media img,
+.page-faq .hs-copy-media img {
+  object-position: 50% 54%;
+}
+
+.hs-compact-card p {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+}
+
+.hs-screen-copy p,
+.hs-book-copy p {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+}
+
+.hs-book-copy {
+  display: flex;
+}
+
+.hs-book-copy .hs-site-kicker,
+.hs-book-copy p,
+.hs-book-copy .hs-copy-media {
+  display: block;
+}
+
+@media (max-width: 1040px) {
+  .hs-page-stage {
+    padding: 28px 0 72px;
+  }
+
+  .hs-home-screen,
+  .hs-screen-layout,
+  .hs-book-screen {
+    min-height: 0;
+  }
+
+  .hs-screen-layout,
+  .hs-book-screen {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .hs-services-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .hs-page-shell {
+    min-height: 100dvh;
+  }
+
+  .hs-page-nav {
+    min-height: 112px;
+    background: rgba(7, 16, 24, 0.54);
+  }
+
+  .hs-page-stage {
+    min-height: 0;
+    padding: 26px 0 64px;
+  }
+
+  .hs-home-screen,
+  .hs-screen-layout,
+  .hs-book-screen {
+    height: auto;
+    min-height: 0;
+  }
+
+  .hs-screen-layout,
+  .hs-book-screen {
+    gap: 20px;
+  }
+
+  .hs-home-screen {
+    gap: 28px;
+  }
+
+  .hs-home-menu {
+    padding-bottom: 18px;
+  }
+
+  .hs-copy-media,
+  .hs-book-copy .hs-copy-media {
+    aspect-ratio: 4 / 3;
+    margin-top: 14px;
+  }
+
+  .page-contact .hs-copy-media,
+  .page-book .hs-copy-media {
+    aspect-ratio: 16 / 9;
+  }
+
+  .hs-services-compact,
+  .hs-plan-compact-grid,
+  .hs-faq-compact-grid,
+  .hs-contact-methods {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .hs-compact-card {
+    min-height: 0;
+    padding: 16px;
+  }
+
+  .hs-compact-card p {
+    display: block;
+    margin-top: 8px;
+    font-size: 13.5px;
+    line-height: 1.42;
+  }
+
+  .hs-plan-compact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hs-plan-compact > strong {
+    font-size: 30px;
+  }
+
+  .hs-contact-compact,
+  .hs-contact-methods {
+    height: auto;
+  }
+
+  .hs-book-copy {
+    display: block;
+  }
+
+  .hs-book-copy .hs-site-kicker,
+  .hs-book-copy p,
+  .hs-book-copy .hs-copy-media {
+    display: block;
+  }
+
+  .hs-book-copy a {
+    margin-top: 14px;
+  }
+
+  .hs-book-panel .bp-service-desc {
+    display: block;
   }
 }

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, CheckCircle2, PhoneCall } from "lucide-react";
-import { contact, proofPoints, shineMarquee } from "@/components/marketing/content";
-import { Marquee } from "@/components/site/Marquee";
+import { CalendarDays, PhoneCall } from "lucide-react";
+import { contact, proofPoints } from "@/components/marketing/content";
 import { Reveal } from "@/components/site/Reveal";
 import { SiteShell } from "@/components/site/SiteShell";
 import { SpotlightCard } from "@/components/site/SpotlightCard";
@@ -13,21 +12,6 @@ export const metadata: Metadata = {
   title: "Proof",
   description: "Real HomeSHINE jobsite media and the process behind every exterior cleaning visit.",
 };
-
-const stages = [
-  {
-    label: "Before",
-    detail: "Surface condition documented before the work starts, so nothing is guessed at later.",
-  },
-  {
-    label: "During",
-    detail: "Plants, fixtures, and sensitive areas protected through the wash, start to finish.",
-  },
-  {
-    label: "After",
-    detail: "Finish checked, photographed, and explained before the crew wraps up and leaves.",
-  },
-];
 
 export default function ProofPage() {
   return (
@@ -62,10 +46,6 @@ export default function ProofPage() {
         </div>
       </section>
 
-      <section className="hs-band-tight hs-band-mist">
-        <Marquee items={shineMarquee} label="HomeSHINE exterior cleaning services" />
-      </section>
-
       <section className="hs-band hs-band-paper">
         <div className="hs-shell">
           <Reveal className="hs-head hs-head-split">
@@ -79,7 +59,7 @@ export default function ProofPage() {
             </p>
           </Reveal>
 
-          <div className="hs-grid" style={{ ["--cols" as string]: 2 }}>
+          <div className="hs-grid" style={{ ["--cols" as string]: 3 }}>
             {proofPoints.map((point, index) => (
               <Reveal key={point.label} delay={index * 60}>
                 <SpotlightCard style={{ height: "100%" }}>
@@ -91,39 +71,7 @@ export default function ProofPage() {
                 </SpotlightCard>
               </Reveal>
             ))}
-            <Reveal delay={180}>
-              <SpotlightCard style={{ height: "100%" }}>
-                <span className="hs-card-icon">
-                  <CheckCircle2 size={21} />
-                </span>
-                <h3 className="hs-h3">Clear finish</h3>
-                <p className="hs-body">
-                  Steven documents what changed and what should be watched next season, so you know
-                  where the property stands.
-                </p>
-              </SpotlightCard>
-            </Reveal>
           </div>
-        </div>
-      </section>
-
-      <section className="hs-band hs-band-ink">
-        <div className="hs-dots" aria-hidden style={{ color: "#7dd3fc" }} />
-        <div className="hs-shell" style={{ position: "relative" }}>
-          <Reveal className="hs-head">
-            <p className="hs-eyebrow">Documented</p>
-            <h2 className="hs-h2">Three points on every job.</h2>
-          </Reveal>
-
-          <Reveal className="hs-steps" style={{ ["--cols" as string]: 3 }}>
-            {stages.map((stage, index) => (
-              <div className="hs-step" key={stage.label}>
-                <p className="hs-step-num">0{index + 1}</p>
-                <h3 className="hs-h3">{stage.label}</h3>
-                <p className="hs-body">{stage.detail}</p>
-              </div>
-            ))}
-          </Reveal>
         </div>
       </section>
 
@@ -155,30 +103,6 @@ export default function ProofPage() {
         </div>
       </section>
 
-      <section className="hs-band-tight hs-band-paper">
-        <div className="hs-shell">
-          <Reveal className="hs-cta">
-            <div className="hs-dots" aria-hidden style={{ color: "#7dd3fc" }} />
-            <div className="hs-cta-copy">
-              <p className="hs-eyebrow">See it on your own house</p>
-              <h2 className="hs-h2">Book the walkthrough. Get the written scope.</h2>
-              <p className="hs-lede">
-                Free onsite assessment of your roof, gutters, windows, siding, and more.
-              </p>
-            </div>
-            <div className="hs-cta-actions">
-              <Link href="/book" className="hs-btn hs-btn-primary">
-                <CalendarDays size={19} />
-                Book a Visit
-              </Link>
-              <a href={contact.phoneHref} className="hs-btn hs-btn-glass">
-                <PhoneCall size={19} />
-                {contact.phone}
-              </a>
-            </div>
-          </Reveal>
-        </div>
-      </section>
     </SiteShell>
   );
 }

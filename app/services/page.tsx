@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, PhoneCall } from "lucide-react";
-import { brand, contact, processSteps, services } from "@/components/marketing/content";
+import { CalendarDays, PhoneCall } from "lucide-react";
+import { brand, contact, services } from "@/components/marketing/content";
 import { Reveal } from "@/components/site/Reveal";
 import { SiteShell } from "@/components/site/SiteShell";
 import { SpotlightCard } from "@/components/site/SpotlightCard";
@@ -98,53 +98,6 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <section className="hs-band hs-band-ink">
-        <div className="hs-dots" aria-hidden style={{ color: "#7dd3fc" }} />
-        <div className="hs-shell" style={{ position: "relative" }}>
-          <Reveal className="hs-head">
-            <p className="hs-eyebrow">Process</p>
-            <h2 className="hs-h2">A careful wash is designed before it starts.</h2>
-          </Reveal>
-
-          <Reveal className="hs-steps">
-            {processSteps.map((item) => (
-              <div className="hs-step" key={item.step}>
-                <p className="hs-step-num">{item.step}</p>
-                <h3 className="hs-h3">{item.title}</h3>
-                <p className="hs-body">{item.detail}</p>
-              </div>
-            ))}
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="hs-band-tight hs-band-paper">
-        <div className="hs-shell">
-          <Reveal className="hs-cta">
-            <div className="hs-dots" aria-hidden style={{ color: "#7dd3fc" }} />
-            <div className="hs-cta-copy">
-              <p className="hs-eyebrow">Method matters</p>
-              <h2 className="hs-h2">
-                Soft where the home needs care. Force where the surface can take it.
-              </h2>
-              <p className="hs-lede">
-                Roofs, siding, trim, and wood get controlled chemistry and low pressure. Concrete,
-                stone, brick, and hardscape get the deeper cut they need.
-              </p>
-            </div>
-            <div className="hs-cta-actions">
-              <Link href="/book" className="hs-btn hs-btn-primary">
-                <CalendarDays size={19} />
-                Book a Visit
-              </Link>
-              <Link href="/plans" className="hs-btn hs-btn-glass">
-                See plans
-                <ArrowRight size={18} />
-              </Link>
-            </div>
-          </Reveal>
-        </div>
-      </section>
     </SiteShell>
   );
 }

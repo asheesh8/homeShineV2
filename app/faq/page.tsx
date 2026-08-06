@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-import { CalendarDays, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import { contact, faqs } from "@/components/marketing/content";
 import { Accordion } from "@/components/site/Accordion";
 import { Reveal } from "@/components/site/Reveal";
 import { SiteShell } from "@/components/site/SiteShell";
-import { SurfaceExplorer } from "@/components/site/widgets/SurfaceExplorer";
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -17,7 +14,7 @@ export const metadata: Metadata = {
 export default function FAQPage() {
   return (
     <SiteShell current="FAQ">
-      <section className="hs-subhero">
+      <section className="hs-subhero hs-subhero-solo">
         <div className="hs-hero-veil" aria-hidden />
         <div className="hs-shell">
           <div className="hs-subhero-grid">
@@ -36,18 +33,6 @@ export default function FAQPage() {
               </div>
             </Reveal>
 
-            <Reveal delay={120}>
-              <figure className="hs-subhero-photo">
-                <Image
-                  src="/promos/trucks.jpeg"
-                  alt="HomeSHINE branded trucks and trailer ready for exterior cleaning work"
-                  fill
-                  sizes="(max-width: 1080px) 100vw, 44vw"
-                  priority
-                />
-                <figcaption>Real crew, real equipment</figcaption>
-              </figure>
-            </Reveal>
           </div>
         </div>
       </section>
@@ -71,49 +56,6 @@ export default function FAQPage() {
         </div>
       </section>
 
-      <section className="hs-band hs-band-mist">
-        <div className="hs-shell">
-          <Reveal className="hs-head hs-head-center">
-            <p className="hs-eyebrow">The big one</p>
-            <h2 className="hs-h2">Soft wash or pressure wash?</h2>
-            <p className="hs-lede">
-              It depends entirely on the surface. Pick one and see the actual pressure, the reason,
-              and what goes wrong when it is done the other way.
-            </p>
-          </Reveal>
-
-          <Reveal>
-            <SurfaceExplorer />
-          </Reveal>
-        </div>
-      </section>
-
-      <section className="hs-band-tight hs-band-paper">
-        <div className="hs-shell">
-          <Reveal className="hs-cta">
-            <div className="hs-dots" aria-hidden style={{ color: "#7dd3fc" }} />
-            <div className="hs-cta-copy">
-              <p className="hs-eyebrow">Still checking?</p>
-              <h2 className="hs-h2">
-                Send the weird surface, stain, slope, or access question before booking.
-              </h2>
-              <p className="hs-lede">
-                No obligation, no pressure. If it is not worth doing, Steven will say so.
-              </p>
-            </div>
-            <div className="hs-cta-actions">
-              <a href={contact.emailHref} className="hs-btn hs-btn-primary">
-                <Mail size={19} />
-                Email HomeSHINE
-              </a>
-              <Link href="/book" className="hs-btn hs-btn-glass">
-                <CalendarDays size={19} />
-                Book a Visit
-              </Link>
-            </div>
-          </Reveal>
-        </div>
-      </section>
     </SiteShell>
   );
 }

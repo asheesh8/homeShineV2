@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
-import { CalendarDays } from "lucide-react";
-import { contact, contactMethods, visitExpectations } from "@/components/marketing/content";
+import { contact, contactMethods } from "@/components/marketing/content";
 import { Reveal } from "@/components/site/Reveal";
 import { SiteShell } from "@/components/site/SiteShell";
 import { ServiceAreaMap } from "@/components/site/widgets/ServiceAreaMap";
@@ -16,7 +13,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <SiteShell current="Contact">
-      <section className="hs-subhero">
+      <section className="hs-subhero hs-subhero-solo">
         <div className="hs-hero-veil" aria-hidden />
         <div className="hs-shell">
           <div className="hs-subhero-grid">
@@ -27,25 +24,6 @@ export default function ContactPage() {
                 Send a booking request, call Steven, or email the team. HomeSHINE will walk the
                 property, document the surfaces, and recommend the cleanest path forward.
               </p>
-              <div className="hs-hero-actions">
-                <Link href="/book" className="hs-btn hs-btn-primary">
-                  <CalendarDays size={19} />
-                  Free onsite assessment
-                </Link>
-              </div>
-            </Reveal>
-
-            <Reveal delay={120}>
-              <figure className="hs-subhero-photo">
-                <Image
-                  src="/homeshine-truck.png"
-                  alt="HomeSHINE truck and trailer at a residential property"
-                  fill
-                  sizes="(max-width: 1080px) 100vw, 44vw"
-                  priority
-                />
-                <figcaption>Local exterior cleaning crew</figcaption>
-              </figure>
             </Reveal>
           </div>
         </div>
@@ -92,14 +70,6 @@ export default function ContactPage() {
             })}
           </div>
 
-          <Reveal className="hs-steps" style={{ ["--cols" as string]: 3, marginTop: 48 }}>
-            {visitExpectations.map((item, index) => (
-              <div className="hs-step" key={item}>
-                <p className="hs-step-num">0{index + 1}</p>
-                <h3 className="hs-h3">{item}</h3>
-              </div>
-            ))}
-          </Reveal>
         </div>
       </section>
 

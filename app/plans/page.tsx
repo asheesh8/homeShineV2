@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarDays, CheckCircle2, PhoneCall } from "lucide-react";
-import { contact, planSignals, plans } from "@/components/marketing/content";
+import { contact, plans } from "@/components/marketing/content";
 import { Reveal } from "@/components/site/Reveal";
 import { SiteShell } from "@/components/site/SiteShell";
-import { PlanValue } from "@/components/site/widgets/PlanValue";
 import { QuoteEstimator } from "@/components/site/widgets/QuoteEstimator";
 
 export const metadata: Metadata = {
@@ -103,14 +102,6 @@ export default function PlansPage() {
         </div>
       </section>
 
-      <section className="hs-band-tight hs-band-paper">
-        <div className="hs-shell">
-          <Reveal>
-            <PlanValue />
-          </Reveal>
-        </div>
-      </section>
-
       <section className="hs-band hs-band-mist">
         <div className="hs-shell">
           <Reveal className="hs-head hs-head-split">
@@ -130,30 +121,6 @@ export default function PlansPage() {
         </div>
       </section>
 
-      <section className="hs-band hs-band-ink">
-        <div className="hs-dots" aria-hidden style={{ color: "#7dd3fc" }} />
-        <div className="hs-shell" style={{ position: "relative" }}>
-          <Reveal className="hs-head hs-head-split">
-            <div>
-              <p className="hs-eyebrow">How to choose</p>
-              <h2 className="hs-h2">Match the plan to the property moment.</h2>
-            </div>
-            <p className="hs-lede">
-              A light maintenance visit and a neglected-property renewal should not feel like the
-              same product with a different price. HomeSHINE scopes the moment first.
-            </p>
-          </Reveal>
-
-          <Reveal className="hs-hero-trust">
-            {planSignals.map((signal) => (
-              <span className="hs-badge hs-badge-glass" key={signal}>
-                <CheckCircle2 size={14} />
-                {signal}
-              </span>
-            ))}
-          </Reveal>
-        </div>
-      </section>
     </SiteShell>
   );
 }

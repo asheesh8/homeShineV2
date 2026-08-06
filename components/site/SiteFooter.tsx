@@ -1,10 +1,41 @@
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { HomeShineLogo } from "@/components/homeshine-logo";
 import { contact, marketingNav, serviceRegions, services } from "@/components/marketing/content";
 
 export function SiteFooter() {
+  const router = useRouter();
+  const pressCount = useRef(0);
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const year = new Date().getFullYear();
   const vt = serviceRegions[0];
+
+  useEffect(
+    () => () => {
+      if (resetTimer.current) clearTimeout(resetTimer.current);
+    },
+    [],
+  );
+
+  function handleArkiTechPress() {
+    pressCount.current += 1;
+
+    if (resetTimer.current) clearTimeout(resetTimer.current);
+
+    if (pressCount.current === 3) {
+      pressCount.current = 0;
+      router.push("/admin");
+      return;
+    }
+
+    resetTimer.current = setTimeout(() => {
+      pressCount.current = 0;
+    }, 1400);
+  }
 
   return (
     <footer className="hs-footer">
@@ -57,10 +88,27 @@ export function SiteFooter() {
         </div>
 
         <div className="hs-footer-base">
-          <span>&copy; {year} HomeSHINE. All rights reserved.</span>
-          <span>
-            Serving {vt.towns.slice(0, 5).map((t) => t.name).join(", ")} and nearby towns.
-          </span>
+          <div className="hs-footer-legal">
+            <span>&copy; {year} HomeSHINE. All rights reserved.</span>
+            <span>
+              Serving {vt.towns.slice(0, 5).map((t) => t.name).join(", ")} and nearby towns.
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="hs-footer-credit"
+            onClick={handleArkiTechPress}
+            aria-label="ArkiTech Solutions"
+            title="ArkiTech Solutions"
+          >
+            <Image
+              src="/brand/arkitech-solutions.png"
+              alt="ArkiTech Solutions"
+              width={197}
+              height={47}
+            />
+          </button>
         </div>
       </div>
     </footer>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { MarketingShell } from "@/components/marketing/MarketingShell";
-import { plans } from "@/components/marketing/content";
+import { planSignals, plans } from "@/components/marketing/content";
 
 export const metadata: Metadata = {
   title: "Plans",
@@ -51,6 +51,22 @@ export default function PlansPage() {
                 <strong>{plan.price}</strong>
                 <p>{plan.detail}</p>
               </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="hs-plan-ladder">
+          <div>
+            <p className="hs-site-kicker">How to choose</p>
+            <h2>Match the plan to the property moment.</h2>
+            <p>
+              A light maintenance visit and a neglected-property renewal should not feel like the
+              same product with a different price. HomeSHINE scopes the moment first.
+            </p>
+          </div>
+          <div className="hs-plan-signal-grid">
+            {planSignals.map((signal) => (
+              <span key={signal}>{signal}</span>
             ))}
           </div>
         </section>

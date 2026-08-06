@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { MarketingShell } from "@/components/marketing/MarketingShell";
-import { services } from "@/components/marketing/content";
+import { processSteps, services } from "@/components/marketing/content";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -34,6 +34,22 @@ export default function ServicesPage() {
               priority
             />
             <span>Roof-safe treatment on site</span>
+          </div>
+        </section>
+
+        <section className="hs-bento-panel">
+          <div className="hs-section-heading">
+            <p className="hs-site-kicker">Process</p>
+            <h2>A careful wash is designed before it starts.</h2>
+          </div>
+          <div className="hs-bento-grid">
+            {processSteps.map((item, index) => (
+              <article className={`hs-bento-card ${index === 0 ? "is-wide" : ""}`} key={item.step}>
+                <span>{item.step}</span>
+                <h2>{item.title}</h2>
+                <p>{item.detail}</p>
+              </article>
+            ))}
           </div>
         </section>
 

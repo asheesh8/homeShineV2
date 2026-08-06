@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { CalendarDays, CheckCircle2, Clock, Leaf, PhoneCall, ShieldCheck } from "lucide-react";
 import { MarketingShell } from "@/components/marketing/MarketingShell";
-import { marketingNav, proofPoints } from "@/components/marketing/content";
+import { marketingNav, proofPoints, shineMarquee } from "@/components/marketing/content";
 
 export default function HomePage() {
   return (
@@ -35,6 +35,20 @@ export default function HomePage() {
               <span><ShieldCheck size={17} /> Fully insured</span>
               <span><Leaf size={17} /> Pet and plant safe</span>
               <span><Clock size={17} /> Mon-Sat, 7:30am-7:30pm</span>
+            </div>
+            <div className="hs-hero-stat-grid" aria-label="HomeSHINE service highlights">
+              <div>
+                <strong>7+</strong>
+                <span>exterior care services</span>
+              </div>
+              <div>
+                <strong>2</strong>
+                <span>service regions</span>
+              </div>
+              <div>
+                <strong>24h</strong>
+                <span>booking confirmation goal</span>
+              </div>
             </div>
           </div>
 
@@ -71,6 +85,14 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className="hs-marquee-band" aria-label="HomeSHINE exterior cleaning services">
+          <div className="hs-marquee-track">
+            {[...shineMarquee, ...shineMarquee].map((item, index) => (
+              <span key={`${item}-${index}`}>{item}</span>
+            ))}
+          </div>
+        </section>
+
         <section className="hs-proof-band">
           {proofPoints.map(({ icon: Icon, label, detail }) => (
             <div key={label}>
@@ -84,6 +106,17 @@ export default function HomePage() {
             <strong>Clear quote</strong>
             <span>Walkthrough first, written scope before the wash begins.</span>
           </div>
+        </section>
+
+        <section className="hs-cta-band">
+          <div>
+            <p className="hs-site-kicker">Ready when you are</p>
+            <h2>Send photos or book the visit. The exterior gets a real plan.</h2>
+          </div>
+          <Link href="/book" className="hs-button hs-button-primary">
+            <CalendarDays size={20} />
+            Start a Quote
+          </Link>
         </section>
       </div>
     </MarketingShell>

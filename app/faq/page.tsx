@@ -44,12 +44,22 @@ export default function FAQPage() {
           </div>
           <div className="hs-faq-grid">
             {faqs.map((item) => (
-              <article className="hs-faq-card" key={item.question}>
-                <h2>{item.question}</h2>
+              <details className="hs-faq-card" key={item.question} open>
+                <summary>{item.question}</summary>
                 <p>{item.answer}</p>
-              </article>
+              </details>
             ))}
           </div>
+        </section>
+
+        <section className="hs-cta-band">
+          <div>
+            <p className="hs-site-kicker">Still checking?</p>
+            <h2>Send the weird surface, stain, slope, or access question before booking.</h2>
+          </div>
+          <a href="mailto:steven@homeshinevt.com" className="hs-button hs-button-primary">
+            Email HomeSHINE
+          </a>
         </section>
       </div>
     </MarketingShell>

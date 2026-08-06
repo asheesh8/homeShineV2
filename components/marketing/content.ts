@@ -201,3 +201,52 @@ export const proofPoints = [
     detail: "Certified in work safety and covered for the job.",
   },
 ];
+
+export const shineMarquee = [
+  "Roof mold and stains",
+  "Vinyl siding",
+  "Concrete and stone",
+  "Gutters and spouts",
+  "Deck and patio sealing",
+  "Solar panels",
+  "Brick sand and seal",
+  "Show-ready curb appeal",
+];
+
+export const processSteps = [
+  {
+    step: "01",
+    title: "Walk the property",
+    detail: "Steven checks water access, vegetation, roofline, drainage, and surface condition before recommending a wash.",
+  },
+  {
+    step: "02",
+    title: "Protect the edges",
+    detail: "Plants, pets, fixtures, outlets, and delicate finishes are protected before chemistry or pressure comes out.",
+  },
+  {
+    step: "03",
+    title: "Match the method",
+    detail: "Soft wash for delicate materials. Higher-force cleaning only where concrete, stone, or masonry can take it.",
+  },
+  {
+    step: "04",
+    title: "Leave the exterior calm",
+    detail: "The crew rinses, checks trouble spots, documents the finish, and points out what to watch next season.",
+  },
+];
+
+export const planSignals = [
+  "One-time reset",
+  "Seasonal protection",
+  "Listing-ready shine",
+  "Neglected-property renewal",
+  "Written scope before work",
+  "Roof-to-curb recommendations",
+];
+
+export const visitExpectations = [
+  "Choose consultation or assessment",
+  "Steven confirms within 24 hours",
+  "You get a clear recommended scope",
+];

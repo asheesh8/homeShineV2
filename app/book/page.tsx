@@ -3,6 +3,7 @@ import Image from "next/image";
 import { CalendarDays, PhoneCall } from "lucide-react";
 import { BookingPortal } from "@/components/booking/BookingPortal";
 import { MarketingShell } from "@/components/marketing/MarketingShell";
+import { visitExpectations } from "@/components/marketing/content";
 
 export const metadata: Metadata = {
   title: "Book a Visit",
@@ -38,6 +39,14 @@ export default function BookPage() {
               <PhoneCall size={18} />
               802-391-9977
             </a>
+            <div className="hs-book-steps" aria-label="Booking expectations">
+              {visitExpectations.map((item, index) => (
+                <span key={item}>
+                  <strong>{index + 1}</strong>
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="hs-book-panel" aria-label="HomeSHINE booking portal">

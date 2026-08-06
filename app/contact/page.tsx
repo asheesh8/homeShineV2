@@ -76,6 +76,17 @@ export default function ContactPage() {
             <p>Tampa, FL service is also available.</p>
           </div>
         </section>
+
+        <section className="hs-route-strip">
+          <div>
+            <strong>Chittenden County</strong>
+            <span>Burlington, South Burlington, Williston, Shelburne, Essex, Colchester, and nearby towns.</span>
+          </div>
+          <div>
+            <strong>Tampa, FL</strong>
+            <span>Exterior care availability for Florida homeowners and seasonal properties.</span>
+          </div>
+        </section>
       </div>
     </MarketingShell>
   );

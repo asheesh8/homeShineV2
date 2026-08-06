@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CalendarDays, CheckCircle2, PhoneCall } from "lucide-react";
 import { MarketingShell } from "@/components/marketing/MarketingShell";
-import { proofPoints } from "@/components/marketing/content";
+import { proofPoints, shineMarquee } from "@/components/marketing/content";
 import { TransformationSlider } from "@/components/marketing/TransformationSlider";
 
 export const metadata: Metadata = {
@@ -59,6 +59,29 @@ export default function ProofPage() {
               <h2>Clear finish</h2>
               <p>Steven documents what changed and what should be watched next season.</p>
             </article>
+          </div>
+        </section>
+
+        <section className="hs-proof-metrics" aria-label="HomeSHINE proof metrics">
+          <div>
+            <strong>Before</strong>
+            <span>Surface condition documented before the work starts.</span>
+          </div>
+          <div>
+            <strong>During</strong>
+            <span>Plants, fixtures, and sensitive areas protected through the wash.</span>
+          </div>
+          <div>
+            <strong>After</strong>
+            <span>Finish checked, photographed, and explained before wrap-up.</span>
+          </div>
+        </section>
+
+        <section className="hs-marquee-band hs-marquee-band-dark" aria-label="HomeSHINE proof services">
+          <div className="hs-marquee-track">
+            {[...shineMarquee, ...shineMarquee].map((item, index) => (
+              <span key={`${item}-${index}`}>{item}</span>
+            ))}
           </div>
         </section>
       </div>

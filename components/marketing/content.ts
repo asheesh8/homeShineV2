@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Sparkles,
   SunMedium,
+  Users,
   Waves,
   Wind,
   type LucideIcon,
@@ -51,6 +52,12 @@ export const marketingNav: MarketingNavItem[] = [
     icon: Sparkles,
   },
   {
+    href: "/about",
+    label: "About",
+    summary: "The story and people behind every visit.",
+    icon: Users,
+  },
+  {
     href: "/faq",
     label: "FAQ",
     summary: "Soft wash, pressure wash, safety, plants.",
@@ -79,6 +86,30 @@ export const contact = {
   address: "26 Cottage Grove Ave, South Burlington, VT 05403",
   hours: "Mon-Sat, 7:30am - 7:30pm",
 };
+
+export const googleReviewsUrl =
+  "https://www.google.com/maps/place/Homeshine+LLC/@44.4673489,-73.2280165,12z/data=!3m1!4b1!4m6!3m5!1s0x486d20e5c13ab20d:0xd4890aca259cbdca!8m2!3d44.4673489!4d-73.2280165!16s%2Fg%2F11y0q7pkjm?hl=en";
+
+export const customerReviews = [
+  {
+    name: "Shannon Leclair",
+    service: "Whole-property exterior care",
+    quote:
+      "Rain or shine, Steve, Beth, and the entire HomeSHINE team show up ready to work and make your home look its absolute best.",
+  },
+  {
+    name: "Matt Marshall",
+    service: "House wash and three-season room",
+    quote:
+      "The absolute best part? True white-glove service. They moved everything off our porch and put it all right back exactly where it belonged.",
+  },
+  {
+    name: "Carrie Cruz",
+    service: "Cedar deck cleaning and sealing",
+    quote:
+      "They soft cleaned our cedar deck with care and excellence and sealed it against the elements here in Vermont with perfection!",
+  },
+];
 
 export const services = [
   {
@@ -109,19 +140,19 @@ export const services = [
     icon: Waves,
     name: "Brick and Stone Sand and Seal",
     detail:
-      "Power washing and finish care for masonry, pavers, walkways, and stone features.",
+      "Masonry cleaning, joint sand, and sealing that stabilizes pavers, slows weeds, and protects the finish.",
   },
   {
     icon: SunMedium,
     name: "Patio and Deck Sealing",
     detail:
-      "Prep and protection for outdoor living surfaces that take Vermont weather head-on.",
+      "Careful prep and sealing that protects outdoor living surfaces from UV, moisture, and wear.",
   },
   {
     icon: Leaf,
     name: "Solar Panel Cleaning",
     detail:
-      "Gentle panel cleaning that protects equipment and helps the system collect clean light.",
+      "Reverse-osmosis cleaning that leaves no mineral residue and uses methods safe around panel electronics.",
   },
   {
     icon: PanelsTopLeft,
@@ -645,10 +676,10 @@ export const processSteps = [
 ];
 
 export const heroStats = [
-  { value: 9, suffix: "", label: "exterior services", detail: "Roofline down to hardscape" },
-  { value: 26, suffix: "+", label: "towns covered", detail: "Vermont and Tampa Bay" },
-  { value: 24, suffix: "h", label: "quote turnaround", detail: "Confirmed by Steven" },
-  { value: 100, suffix: "%", label: "insured and assessed", detail: "Every single site" },
+  { value: 5, suffix: ".0", label: "Google rating", href: googleReviewsUrl, external: true },
+  { value: 29, suffix: "", label: "Google reviews", href: googleReviewsUrl, external: true },
+  { value: 9, suffix: "", label: "exterior services", href: "/services", external: false },
+  { value: 2, suffix: "", label: "seasonal regions", href: "/contact", external: false },
 ];
 
 export const planSignals = [

@@ -107,12 +107,18 @@ export default function HomePage() {
             style={{ ["--cols" as string]: heroStats.length }}
           >
             {heroStats.map((stat) => (
-              <div key={stat.label}>
+              <Link
+                href={stat.href}
+                key={stat.label}
+                target={stat.external ? "_blank" : undefined}
+                rel={stat.external ? "noreferrer" : undefined}
+                aria-label={stat.external ? `${stat.label}, opens Google reviews` : stat.label}
+              >
                 <p className="hs-stat-value">
                   <NumberTicker value={stat.value} suffix={stat.suffix} />
                 </p>
                 <p className="hs-stat-label">{stat.label}</p>
-              </div>
+              </Link>
             ))}
           </Reveal>
         </div>

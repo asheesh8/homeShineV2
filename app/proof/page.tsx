@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, PhoneCall } from "lucide-react";
-import { contact, proofPoints } from "@/components/marketing/content";
+import { CalendarDays, ExternalLink, PhoneCall, Quote, Star } from "lucide-react";
+import {
+  contact,
+  customerReviews,
+  googleReviewsUrl,
+  proofPoints,
+} from "@/components/marketing/content";
 import { Reveal } from "@/components/site/Reveal";
 import { SiteShell } from "@/components/site/SiteShell";
 import { SpotlightCard } from "@/components/site/SpotlightCard";
@@ -75,6 +80,55 @@ export default function ProofPage() {
         </div>
       </section>
 
+      <section className="hs-band hs-band-ink hs-reviews-band">
+        <div className="hs-shell">
+          <Reveal className="hs-reviews-head">
+            <div className="hs-review-score">
+              <strong>5.0</strong>
+              <span className="hs-review-stars" aria-label="5 out of 5 stars">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Star key={index} size={17} fill="currentColor" aria-hidden />
+                ))}
+              </span>
+              <span>29 Google reviews</span>
+            </div>
+            <div className="hs-head" style={{ marginBottom: 0 }}>
+              <p className="hs-eyebrow">Homeowner words</p>
+              <h2 className="hs-h2">The care shows up in the details.</h2>
+              <p className="hs-lede">
+                Real feedback from homeowners who trusted Steven, Beth, and the HomeSHINE crew
+                with their property.
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="hs-review-grid">
+            {customerReviews.map((review, index) => (
+              <Reveal as="article" className="hs-review" key={review.name} delay={index * 70}>
+                <Quote size={24} aria-hidden />
+                <blockquote>&ldquo;{review.quote}&rdquo;</blockquote>
+                <footer>
+                  <strong>{review.name}</strong>
+                  <span>{review.service}</span>
+                </footer>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal className="hs-reviews-link">
+            <a
+              href={googleReviewsUrl}
+              className="hs-btn hs-btn-glass"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Read all Google reviews
+              <ExternalLink size={17} />
+            </a>
+          </Reveal>
+        </div>
+      </section>
+
       <section className="hs-band hs-band-mist">
         <div className="hs-shell">
           <Reveal className="hs-cert-layout">
@@ -102,7 +156,6 @@ export default function ProofPage() {
           </Reveal>
         </div>
       </section>
-
     </SiteShell>
   );
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { MarketingShell } from "@/components/marketing/MarketingShell";
-import { MarketingPhoto } from "@/components/marketing/MarketingPhoto";
 import { contactMethods, towns } from "@/components/marketing/content";
 
 export const metadata: Metadata = {
@@ -15,23 +15,34 @@ export default function ContactPage() {
       backgroundSrc="/homeshine-truck.png"
       backgroundAlt="HomeSHINE truck and trailer in a residential driveway"
     >
-      <section className="hs-screen-layout">
-        <div className="hs-screen-copy">
-          <p className="hs-site-kicker">Start here</p>
-          <h1>Get the right plan for your exterior.</h1>
-          <p>
-            Send a booking request, call Steven, or email the team. HomeSHINE will walk the property,
-            document the surfaces, and recommend the cleanest path forward.
-          </p>
-          <MarketingPhoto
-            src="/homeshine-truck.png"
-            alt="HomeSHINE truck and trailer at a home"
-            label="Local exterior cleaning crew"
-          />
-        </div>
+      <div className="hs-immersive-page">
+        <section className="hs-immersive-hero">
+          <div className="hs-immersive-copy">
+            <p className="hs-site-kicker">Start here</p>
+            <h1>Get the right plan for your exterior.</h1>
+            <p>
+              Send a booking request, call Steven, or email the team. HomeSHINE will walk the property,
+              document the surfaces, and recommend the cleanest path forward.
+            </p>
+          </div>
+          <div className="hs-immersive-photo">
+            <Image
+              src="/homeshine-truck.png"
+              alt="HomeSHINE truck and trailer at a home"
+              fill
+              sizes="(max-width: 900px) 100vw, 46vw"
+              priority
+            />
+            <span>Local exterior cleaning crew</span>
+          </div>
+        </section>
 
-        <div className="hs-contact-compact">
-          <div className="hs-contact-methods">
+        <section className="hs-section-panel hs-contact-panel">
+          <div className="hs-section-heading">
+            <p className="hs-site-kicker">Contact</p>
+            <h2>Pick the fastest way in.</h2>
+          </div>
+          <div className="hs-contact-method-grid">
             {contactMethods.map(({ href, icon: Icon, label, detail }) => {
               const body = (
                 <>
@@ -64,8 +75,8 @@ export default function ContactPage() {
             </div>
             <p>Tampa, FL service is also available.</p>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </MarketingShell>
   );
 }

@@ -6886,3 +6886,289 @@ h2 {
     display: block;
   }
 }
+
+/* Decisive website reset: editorial hero first, then real scrolled content below. */
+.hs-page-shell {
+  display: block;
+  min-height: 100dvh;
+  height: auto;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.hs-page-stage {
+  width: 100%;
+  min-height: auto;
+  padding: clamp(42px, 7vh, 84px) 0 clamp(72px, 10vh, 120px);
+}
+
+.hs-home-screen,
+.hs-screen-layout,
+.hs-book-screen {
+  width: min(100% - 48px, 1120px);
+  height: auto;
+  min-height: auto;
+  overflow: visible;
+}
+
+.hs-screen-layout {
+  display: block;
+}
+
+.hs-screen-copy {
+  width: min(100%, 790px);
+  margin: 0 0 clamp(34px, 6vh, 72px);
+}
+
+.hs-screen-copy h1 {
+  max-width: 820px;
+  font-size: clamp(58px, 7vw, 104px);
+  line-height: 0.9;
+}
+
+.hs-screen-copy p {
+  max-width: 720px;
+  font-size: clamp(18px, 2vw, 22px);
+  line-height: 1.52;
+}
+
+.hs-copy-media {
+  width: min(100%, 780px);
+  aspect-ratio: 16 / 9;
+  margin-top: 30px;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.26);
+}
+
+.hs-copy-media img {
+  object-fit: cover;
+  object-position: center;
+  padding: 0;
+}
+
+.hs-services-compact,
+.hs-plan-compact-grid,
+.hs-faq-compact-grid,
+.hs-contact-compact {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  align-content: start;
+}
+
+.hs-services-compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hs-plan-compact-grid,
+.hs-faq-compact-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hs-contact-methods {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hs-compact-card,
+.hs-contact-method,
+.hs-town-panel {
+  min-height: 0;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.hs-compact-card {
+  padding: clamp(22px, 3vw, 34px);
+}
+
+.hs-compact-card h2 {
+  font-size: clamp(21px, 2.2vw, 28px);
+}
+
+.hs-compact-card p {
+  display: block;
+  overflow: visible;
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.58;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+}
+
+.hs-compact-icon {
+  margin-bottom: 24px;
+}
+
+.hs-plan-compact {
+  min-height: 260px;
+}
+
+.hs-plan-compact > strong {
+  font-size: clamp(38px, 5vw, 58px);
+}
+
+.hs-contact-compact {
+  display: grid;
+  gap: 16px;
+}
+
+.hs-town-panel {
+  padding: clamp(20px, 3vw, 30px);
+}
+
+.hs-book-screen {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
+  gap: clamp(34px, 5vw, 70px);
+  align-items: start;
+}
+
+.hs-book-copy {
+  position: sticky;
+  top: 122px;
+}
+
+.hs-book-panel {
+  align-self: start;
+}
+
+.hs-book-panel .bp-shell {
+  max-height: none;
+  overflow: visible;
+}
+
+.hs-proof-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(34px, 5vw, 70px);
+  align-items: start;
+}
+
+.hs-proof-layout .hs-screen-copy {
+  margin-bottom: 0;
+}
+
+.page-proof .hs-reveal,
+.page-proof .hs-reveal-stage,
+.hs-page-shell.page-proof .hs-reveal-stage {
+  width: 100%;
+  min-height: 620px;
+}
+
+.hs-home-screen {
+  min-height: calc(100dvh - 170px);
+  display: grid;
+  grid-template-rows: minmax(420px, 1fr) auto;
+}
+
+.hs-home-menu {
+  margin-top: clamp(34px, 7vh, 74px);
+}
+
+@media (max-width: 1040px) {
+  .hs-page-stage {
+    padding: 32px 0 84px;
+  }
+
+  .hs-screen-layout,
+  .hs-book-screen,
+  .hs-proof-layout {
+    display: block;
+  }
+
+  .hs-book-copy {
+    position: static;
+    margin-bottom: 24px;
+  }
+
+  .hs-services-compact,
+  .hs-plan-compact-grid,
+  .hs-faq-compact-grid,
+  .hs-contact-methods {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-proof .hs-reveal,
+  .page-proof .hs-reveal-stage,
+  .hs-page-shell.page-proof .hs-reveal-stage {
+    min-height: 520px;
+  }
+}
+
+@media (max-width: 760px) {
+  .hs-page-stage {
+    padding: 30px 0 72px;
+  }
+
+  .hs-home-screen,
+  .hs-screen-layout,
+  .hs-book-screen {
+    width: min(100% - 20px, 1120px);
+  }
+
+  .hs-home-screen {
+    min-height: auto;
+    display: block;
+  }
+
+  .hs-screen-copy {
+    margin-bottom: 22px;
+  }
+
+  .hs-screen-copy h1,
+  .hs-book-copy h1 {
+    font-size: clamp(42px, 13vw, 56px);
+    line-height: 0.92;
+  }
+
+  .hs-screen-copy p,
+  .hs-book-copy p {
+    display: block;
+    overflow: visible;
+    font-size: 17px;
+    line-height: 1.46;
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: initial;
+  }
+
+  .hs-copy-media,
+  .hs-book-copy .hs-copy-media {
+    aspect-ratio: 16 / 10;
+    margin-top: 18px;
+  }
+
+  .page-services .hs-copy-media,
+  .page-proof .hs-copy-media {
+    aspect-ratio: 4 / 3;
+  }
+
+  .hs-services-compact,
+  .hs-plan-compact-grid,
+  .hs-faq-compact-grid,
+  .hs-contact-methods {
+    grid-template-columns: 1fr;
+  }
+
+  .hs-compact-card {
+    padding: 20px;
+  }
+
+  .hs-compact-card h2 {
+    font-size: 22px;
+  }
+
+  .hs-compact-card p {
+    display: block;
+    font-size: 14px;
+  }
+
+  .page-proof .hs-reveal,
+  .page-proof .hs-reveal-stage,
+  .hs-page-shell.page-proof .hs-reveal-stage {
+    min-height: 460px;
+    aspect-ratio: 0.82 / 1;
+  }
+}

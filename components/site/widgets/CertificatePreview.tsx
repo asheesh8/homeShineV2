@@ -1,7 +1,7 @@
 /**
- * Public preview of the Exterior Care Certificate the field app issues at the
- * end of a job (see `diplomaDocument` in lib/field-app-documents.ts). Same
- * gold-on-cream treatment, same structure.
+ * Public preview of the Exterior Care Certificate Steven can issue from the
+ * admin certificate generator after a qualifying job. Same gold-on-cream
+ * treatment, same homeowner-facing structure.
  *
  * The recipient fields are deliberate placeholders, and the sheet carries a
  * "specimen" mark — this is a sample of the format, never a rendered record
@@ -75,36 +75,49 @@ export function CertificatePreview() {
           Specimen
         </span>
 
+        <div className="hs-cert-top">
+          <div className="hs-cert-logo">
+            <HouseBadge size={52} />
+          </div>
+          <div>
+            <p className="hs-cert-top-eyebrow">Certificate of Completion</p>
+            <p className="hs-cert-top-title">EXTERIOR CARE</p>
+            <p className="hs-cert-top-sub">HomeSHINE Certified</p>
+          </div>
+          <div className="hs-cert-verified">
+            <span>Verified</span>
+            <strong>2026</strong>
+          </div>
+        </div>
+
         <div className="hs-cert-rule" />
 
-        <p className="hs-cert-eyebrow">Certificate of Excellence</p>
+        <p className="hs-cert-eyebrow">This certificate is proudly presented to</p>
 
         <p className="hs-cert-title">
-          HomeSHINE
-          <br />
-          Exterior Care Certificate
+          Homeowner Name
         </p>
+
+        <p className="hs-cert-address">123 Maple Street, South Burlington, VT</p>
 
         <p className="hs-cert-sub">
-          This certifies that the following property has received a professional HomeSHINE exterior
-          assessment and is enrolled in a certified care program.
+          This property has been professionally inspected, treated, and cared for by the
+          HomeSHINE team. Surfaces were serviced with eco-friendly solutions and the right
+          soft-wash or pressure-wash method for the material.
         </p>
 
-        <div className="hs-cert-body">
-          <span className="hs-cert-seal">
-            <HouseBadge />
-          </span>
+        <div className="hs-cert-services" aria-label="Sample certificate services">
+          <span>Roof Wash</span>
+          <span>House / Siding Wash</span>
+          <span>Gutter Cleaning</span>
+        </div>
 
-          <div className="hs-cert-recipient">
-            <p className="hs-cert-presented">Presented to</p>
-            <p className="hs-cert-name">Your Name Here</p>
-            <p className="hs-cert-address">123 Maple Street, South Burlington, VT</p>
-            <span className="hs-cert-pill">&#9733; &nbsp;SHINE-Protection</span>
-          </div>
-
-          <span className="hs-cert-seal">
-            <HouseBadge />
+        <div className="hs-cert-plan">
+          <span>
+            <small>Plan Enrolled</small>
+            SHINE-Protection
           </span>
+          <strong>$3,550</strong>
         </div>
 
         <div className="hs-cert-rule" />
@@ -130,7 +143,12 @@ export function CertificatePreview() {
           </div>
         </div>
 
-        <p className="hs-cert-date">Issued on completion</p>
+        <p className="hs-cert-date">Service date · issued on completion</p>
+
+        <div className="hs-cert-foot">
+          <span>HomeSHINE · Vermont · 802-391-9977</span>
+          <span>HS-2026-SAMPLE</span>
+        </div>
       </div>
     </figure>
   );

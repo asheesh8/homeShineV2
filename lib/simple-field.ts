@@ -85,7 +85,6 @@ export type AppUser = {
   id: UserId;
   name: string;
   username: string;
-  password: string;
   role: "admin";
 };
 
@@ -386,19 +385,19 @@ export function formatOwnerAddress(owner: Owner) {
   return [owner.street, owner.city, owner.state].filter(Boolean).join(", ");
 }
 
+// Staff profiles only. Passwords are configured server-side in FIELD_APP_USERS
+// (see lib/field-auth.ts) so they never ship to the browser.
 export const appUsers: AppUser[] = [
   {
     id: "steven",
     name: "Steven Maestas",
     username: "steven",
-    password: "homeshine-steven",
     role: "admin",
   },
   {
     id: "beth",
     name: "Beth",
     username: "beth",
-    password: "homeshine-beth",
     role: "admin",
   },
 ];

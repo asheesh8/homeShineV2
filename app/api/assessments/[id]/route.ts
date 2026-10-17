@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getFieldUser, unauthorized } from "@/lib/field-auth";
 
 import type { Assessment } from "@/lib/simple-field";
 import { mapAssessmentToRow, mapRowToAssessment, type AssessmentRow } from "@/lib/assessment-store";
@@ -11,6 +12,8 @@ type Params = {
 };
 
 export async function PUT(request: Request, { params }: Params) {
+  if (!(await getFieldUser())) return unauthorized();
+
   try {
     const { id } = await params;
     const supabaseAdmin = getSupabaseAdmin();
@@ -46,6 +49,8 @@ export async function PUT(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
+  if (!(await getFieldUser())) return unauthorized();
+
   try {
     const { id } = await params;
     const supabaseAdmin = getSupabaseAdmin();

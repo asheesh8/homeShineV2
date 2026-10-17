@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getFieldUser, unauthorized } from "@/lib/field-auth";
 
 import { type Assessment, sectionDefinitions } from "@/lib/simple-field";
 
@@ -70,6 +71,8 @@ function extractJsonObject(text: string): ParsedResponse {
 }
 
 export async function POST(request: Request) {
+  if (!(await getFieldUser())) return unauthorized();
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json(

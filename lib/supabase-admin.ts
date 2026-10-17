@@ -1,5 +1,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+// Server-only Supabase client. The service-role key bypasses row-level security,
+// so every access rule lives in the API routes that call this — never import it
+// from a client component. Created lazily so a missing key fails the request
+// that needs it rather than the whole build.
 let cachedClient: SupabaseClient | null = null;
 
 export function getSupabaseAdmin() {

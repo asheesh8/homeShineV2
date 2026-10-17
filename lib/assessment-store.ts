@@ -16,6 +16,11 @@ export type AssessmentRow = {
   updated_at: string;
 };
 
+// Checkout and booking data ride inside the `sections` JSON column under
+// double-underscore keys instead of having their own columns, so they could be
+// added without a schema migration. mapRowToAssessment splits them back out;
+// code that reads `sections` raw (e.g. /api/available-slots, which reads
+// __booking to find taken slots) has to know about these keys.
 type PersistedSections = Record<string, SectionValue | null> & {
   __checkout?: CheckoutData | null;
   __booking?: BookingData | null;

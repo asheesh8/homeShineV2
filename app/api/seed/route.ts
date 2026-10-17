@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getFieldUser, unauthorized } from "@/lib/field-auth";
 import { mapAssessmentToRow } from "@/lib/assessment-store";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import type { Assessment } from "@/lib/simple-field";
@@ -182,6 +183,8 @@ const SAMPLE_ASSESSMENTS: Assessment[] = [
 ];
 
 export async function POST() {
+  if (!(await getFieldUser())) return unauthorized();
+
   const supabaseAdmin = getSupabaseAdmin();
 
   const rows = SAMPLE_ASSESSMENTS.map(mapAssessmentToRow);

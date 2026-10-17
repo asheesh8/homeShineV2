@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getFieldUser, unauthorized } from "@/lib/field-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export type BookingRequest = {
@@ -37,6 +38,8 @@ function mapRow(row: Record<string, unknown>): BookingRequest {
 
 /* GET — fetch all requests (used by Steven's CalendarScreen) */
 export async function GET() {
+  if (!(await getFieldUser())) return unauthorized();
+
   try {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
@@ -90,6 +93,8 @@ export async function POST(request: Request) {
 
 /* PATCH — Steven updates status and/or reschedules */
 export async function PATCH(request: Request) {
+  if (!(await getFieldUser())) return unauthorized();
+
   try {
     const body = await request.json() as { id: string; status?: string; requestedDate?: string; requestedTime?: string };
     if (!body.id) return NextResponse.json({ error: "id required." }, { status: 400 });

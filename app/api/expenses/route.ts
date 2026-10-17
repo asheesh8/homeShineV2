@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getFieldUser, unauthorized } from "@/lib/field-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export type Expense = {
@@ -24,6 +25,8 @@ function mapRow(row: Record<string, unknown>): Expense {
 }
 
 export async function GET(request: Request) {
+  if (!(await getFieldUser())) return unauthorized();
+
   const { searchParams } = new URL(request.url);
   const year = searchParams.get("year");
   try {
@@ -41,6 +44,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (!(await getFieldUser())) return unauthorized();
+
   try {
     const body = await request.json() as Record<string, unknown>;
     const required = ["date", "category", "description", "amount"];
@@ -67,6 +72,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!(await getFieldUser())) return unauthorized();
+
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });

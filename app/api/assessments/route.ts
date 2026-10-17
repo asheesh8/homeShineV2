@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { getFieldUser, unauthorized } from "@/lib/field-auth";
 
 import type { Assessment } from "@/lib/simple-field";
 import { mapAssessmentToRow, mapRowToAssessment, type AssessmentRow } from "@/lib/assessment-store";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function GET() {
+  if (!(await getFieldUser())) return unauthorized();
+
   try {
     const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
@@ -24,6 +27,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!(await getFieldUser())) return unauthorized();
+
   try {
     const supabaseAdmin = getSupabaseAdmin();
 

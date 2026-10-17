@@ -9,6 +9,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { getFieldUser, unauthorized } from "@/lib/field-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 type TownRow = { town: string; state_rate: number; local_rate: number };
@@ -112,6 +113,8 @@ function buildRows(): TownRow[] {
 }
 
 export async function POST() {
+  if (!(await getFieldUser())) return unauthorized();
+
   try {
     const sb = getSupabaseAdmin();
 
